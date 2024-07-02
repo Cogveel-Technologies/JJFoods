@@ -50,6 +50,8 @@ export class CouponService {
     const user = await this.usedModel.findOne({ code: body.couponId, user: body.userId }).exec();
     console.log(user)
     if (user) {
+
+
       throw new Error('Coupon already used');
     }
     if (body.price < promotionalCode.minimumOrder && body.price > promotionalCode.maximumOrder) {
@@ -58,39 +60,63 @@ export class CouponService {
 
 
 
+    if (body?.toApply) {
+      const usedUser = new this.usedModel({ code: body.couponId, user: body.userId });
 
-    // const usedUser = new this.usedModel({ code: body.couponId, user: body.userId });
+      await usedUser.save()
 
-    // await usedUser.save()
+      promotionalCode.usageLimit--;
 
-    // promotionalCode.usageLimit--;
-
-    // await promotionalCode.save();
+      await promotionalCode.save();
+    }
     if (promotionalCode.isPercent) {
-      const discount = body.price * promotionalCode.discountAmount / 100
-      return await this.cartService.getUserCart(body.userId, { discount })
+      const discount = body.price * promotionalCode.discountAmount / 100;
+      const res = await this.cartService.getUserCart(body.userId, { discount })
+      return res;
     }
     else {
       const discount = promotionalCode.discountAmount;
-      return await this.cartService.getUserCart(body.userId, { discount })
+      const res = await this.cartService.getUserCart(body.userId, { discount })
+      console.log(res)
+      return res;
 
     }
   }
 
-  async findAll(userId) {
+  // async findAll(userId) {
 
-    const allCoupons = await this.couponModel.find().exec();
-    const usedCoupons = await this.usedModel.find({ user: userId })
+  //   const allCoupons = await this.couponModel.find().exec();
+  //   const usedCoupons = await this.usedModel.find({ user: userId })
+
+  //   const usedCouponCodes = usedCoupons.map((used) => {
+  //     return used.code
+  //   })
+
+  //   // Fetch all coupons that are not used
+  //   const availableCoupons = await this.couponModel.find({
+  //     _id: { $nin: usedCouponCodes },
+  //   }).exec();
+
+  //   return availableCoupons;
+  // }
+  async findAll(userId) {
+    const currentDate = new Date();
+
+    // const allCoupons = await this.couponModel.find().exec();
+    const usedCoupons = await this.usedModel.find({ user: userId });
 
     const usedCouponCodes = usedCoupons.map((used) => {
-      return used.code
-    })
+      return used.code;
+    });
 
-    // Fetch all coupons that are not used
+    // Fetch all coupons that are not used and are still valid
     const availableCoupons = await this.couponModel.find({
       _id: { $nin: usedCouponCodes },
+      validFrom: { $lte: currentDate },
+      validTo: { $gte: currentDate },
     }).exec();
 
     return availableCoupons;
   }
+
 }

@@ -34,6 +34,33 @@ export class AuthController {
     return this.authService.superAdminLogin(body);
   }
 
+
+
+  @Put('/superAdmin/update')
+  @UseInterceptors(FileInterceptor('file'))
+  superAdminUpdate(@Body() updateProfileDto,
+    @UploadedFile() file: Express.Multer.File,) {
+    console.log("update called");
+    return this.authService.superAdminUpdate(updateProfileDto, file);
+
+  }
+  //rbac
+  @Put('/restaurantStatus')
+  restaurantStatus(@Body() body) {
+    console.log(body)
+    return this.authService.restaurantStatus(body);
+  }
+
+  @Get('/restaurantStatus/:id')
+  getRestaurantStatus(@Param('id') id) {
+    console.log(id)
+    return this.authService.getRestaurantStatus(id);
+  }
+  @Post('/superadmin1')
+  superAdmin(@Body() body) {
+    return this.authService.superadmin(body)
+  }
+
   @Post('/admin/signup')
   adminSignUp(@Body() body: any) {
     return this.authService.adminSignUp(body)
@@ -92,6 +119,8 @@ export class AuthController {
   ) {
     return this.authService.updateProfile(updateProfileDto, file);
   }
+
+
 
   @Delete('/delete')
   deleteProfile(@Body() body: any) {

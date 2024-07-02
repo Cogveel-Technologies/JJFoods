@@ -5,10 +5,11 @@ import { OrderService } from './order.service';
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
-  @Get('admin/orders/:state')
-  async getAdminOrdersByState(@Param('state') state) {
-    console.log(state)
-    const res = await this.orderService.getAdminOrdersByState(state)
+  @Get('admin/orders/:state/:orderType')
+  async getAdminOrdersByState(@Param('state') state, @Param('orderType') orderType) {
+    // console.log(state, orderType)
+    const res = await this.orderService.getAdminOrdersByState(state, orderType)
+    // console.log(res)
     return res
 
   }
@@ -41,8 +42,9 @@ export class OrderController {
   }
 
   @Put('state/:orderId')
-  async updateOrderState(@Param('orderId') orderId: string, @Body() state: string) {
-    return this.orderService.updateOrderState(orderId, state);
+  async updateOrderState(@Param('orderId') orderId: string, @Body() body) {
+    console.log(orderId, body)
+    return this.orderService.updateOrderState(orderId, body.state);
   }
   @Put('state/cod/:orderId')
   async updateOrderStateCod(@Param('orderId') orderId: string) {

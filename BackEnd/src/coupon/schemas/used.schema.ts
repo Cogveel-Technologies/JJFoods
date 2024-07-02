@@ -12,8 +12,8 @@ export class Used {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User
 
-  @Prop()
-  isUsed: boolean
+  // @Prop()
+  // isUsed: boolean
 }
 
 export const UsedSchema = SchemaFactory.createForClass(Used);

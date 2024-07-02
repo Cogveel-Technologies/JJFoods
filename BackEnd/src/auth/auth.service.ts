@@ -1,5 +1,6 @@
-import { HttpException, HttpStatus, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import * as bcrypt from 'bcryptjs'
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { SignupDto } from './dtos/signup.dto';
@@ -14,6 +15,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { NotFoundError } from 'rxjs';
 import { CartService } from 'src/cart/cart.service';
+import { Admin } from './schemas/admin.schema';
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
 @Injectable()
@@ -25,7 +27,8 @@ export class AuthService {
     private readonly httpService: HttpService,
     private configService: ConfigService,
     @Inject(forwardRef(() => CartService))
-    private readonly cartService: CartService,) {
+    private readonly cartService: CartService,
+    @InjectModel(Admin.name) private adminModel: Model<Admin>) {
 
   }
   bucket = admin.storage().bucket();
@@ -158,12 +161,97 @@ export class AuthService {
     // Return the validation code
     return validationCode;
   }
-  superAdminLogin(body) {
-    if (body.username == 'husban' && body.password == 'nissarhusban') {
-      return 'login'
+  async superAdminLogin(body) {
+    const admin = await this.adminModel.findOne({ emailId: body.emailId });
+    const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
+    if (!isPasswordMatch) {
+      throw new UnauthorizedException('invalid credentials')
     }
 
-    return 'error'
+    return {
+      "_id": admin._id,
+      "emailId": admin.emailId,
+      "name": admin.name,
+      "phoneNumber": admin.phoneNumber
+    };
+
+
+  }
+  async superAdminUpdate(updateProfileDto: any, file: Express.Multer.File) {
+    try {
+
+      // if (updateProfileDto?.isAdmin !== undefined) {
+      //   delete updateProfileDto.isAdmin;
+      // }
+      // Find user by phone number
+      const admin = await this.adminModel.findOne({ emailId: updateProfileDto.emailId });
+      if (!admin) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Update user profile information
+      const updatedUser = await this.adminModel.findOneAndUpdate(
+        { emailId: updateProfileDto.emailId },
+        { $set: updateProfileDto },
+        { new: true } // Return the updated document
+      );
+
+      // If a file is provided, upload the image and set the imageUrl
+      if (file) {
+        const imageUrl = await this.uploadImage(file);
+        updatedUser.imageUrl = imageUrl;
+      }
+
+      // Save the updated user document
+      await updatedUser.save();
+
+      return {
+        "_id": updatedUser._id,
+        "emailId": updatedUser.emailId,
+        "name": updatedUser.name,
+        "phoneNumber": updatedUser.phoneNumber,
+        "imageUrl": updatedUser.imageUrl
+      };
+    } catch (error) {
+      // Handle errors
+      throw new HttpException(`Failed to update profile: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async restaurantStatus(body) {
+    const admin = await this.adminModel.findOne({ _id: body.admin })
+    if (!admin) {
+      throw new Error("cant access")
+    }
+    admin?.isOpen ? admin.isOpen = false : admin.isOpen = true;
+    await admin.save();
+    return {
+      "state": admin.isOpen
+    }
+
+
+  }
+  async getRestaurantStatus(id) {
+    const admin = await this.adminModel.findOne({ _id: id })
+    if (!admin) {
+      throw new Error("admin not found");
+    }
+    return {
+      "state": admin?.isOpen
+    }
+
+  }
+  async superadmin(body) {
+
+    // console.log(body.password)
+
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    delete body.password;
+
+    body["password"] = hashedPassword
+    // console.log(body)
+    await this.adminModel.create(body);
+    return "done"
+
 
   }
   async adminSignupOtp(signupOtpDto) {
