@@ -12,6 +12,7 @@ import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 import { RazorpayService } from 'src/razorpay/razorpay.service';
 import { ConfigService } from '@nestjs/config';
 import { FeedbackService } from 'src/feedback/feedback.service';
+import { Used } from 'src/coupon/schemas/used.schema';
 const { ObjectId } = require('mongodb');
 
 @Injectable()
@@ -28,68 +29,130 @@ export class OrderService {
     @Inject(RazorpayService) private readonly razorpayService: RazorpayService,
     private configService: ConfigService,
     @InjectConnection() private connection: Connection,
-    @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService) { }
+    @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService,
+    @InjectModel(Used.name) private readonly usedModel: Model<Used>
+  ) { }
 
   //admin
 
-  async getAdminOrdersByState(state) {
+  // async getAdminOrdersByState(state) {
 
 
 
+  //   let queryStates;
+  //   if (state === 'Processing') {
+  //     queryStates = ['processing'];
+  //   }
+  //   else if (state == 'OnTheWay') {
+  //     queryStates = ['ready', 'on the way']
+  //   }
+  //   else if (state == 'Pending') {
+  //     queryStates = ['pending']
+  //   } else if (state === 'Completed') {
+  //     queryStates = ['completed'];
+  //   }
+  //   else if (state == 'Cancelled') {
+  //     queryStates = ['cancelled']
+  //   } else {
+  //     // If the state doesn't match 'running' or 'history', return an empty array or handle accordingly
+  //     return [];
+  //   }
+
+  //   // Query the database with the mapped states
+  //   const orders = await this.orderModel.find({ state: { $in: queryStates } }).exec();
+  //   // return response;
+  //   for (const order of orders) {
+
+
+
+  //     const addressComplete = await this.addressModel.findOne({ _id: order.address })
+  //     const userDetails = await this.userModel.findOne({ _id: order.user })
+  //     console.log(order.address, addressComplete)
+  //     if (userDetails) {
+  //       order.user = userDetails;
+  //     }
+  //     if (addressComplete) {
+  //       order.address = addressComplete
+  //     }
+  //     for (const product of order.products) {
+
+  //       const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+
+
+  //       if (item) {
+  //         product.details = item
+
+  //       }
+  //       // const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
+  //       // console.log(rating)
+  //       // if (rating) {
+  //       //   product.details.rating = rating;
+  //       // } else {
+  //       //   product.details.rating = 0
+  //       // }
+
+
+  //     }
+  //   }
+  //   // console.log(orders)
+  //   return orders;
+  // }
+  async getAdminOrdersByState(state, orderType) {
     let queryStates;
-    if (state === 'Processing') {
-      queryStates = ['processing'];
-    }
-    else if (state == 'OnTheWay') {
-      queryStates = ['ready', 'on the way']
-    }
-    else if (state == 'Pending') {
-      queryStates = ['pending']
-    } else if (state === 'Completed') {
-      queryStates = ['completed'];
-    }
-    else if (state == 'Cancelled') {
-      queryStates = ['cancelled']
-    } else {
-      // If the state doesn't match 'running' or 'history', return an empty array or handle accordingly
-      return [];
+
+    switch (state) {
+      case 'Processing':
+        queryStates = ['processing'];
+        break;
+      case 'OnTheWay':
+        queryStates = ['ready', 'on the way'];
+        break;
+      case 'Pending':
+        queryStates = ['pending'];
+        break;
+      case 'Completed':
+        queryStates = ['completed'];
+        break;
+      case 'Cancelled':
+        queryStates = ['cancelled'];
+        break;
+      default:
+        return [];
     }
 
-    // Query the database with the mapped states
     const orders = await this.orderModel.find({ state: { $in: queryStates } }).exec();
-    // return response;
-    for (const order of orders) {
+
+    const addressIds = orders.map(order => order.address);
+    const userIds = orders.map(order => order.user);
+    const productIds = orders.flatMap(order => order.products.map(product => product.itemId));
+
+    const [addresses, users, items] = await Promise.all([
+      this.addressModel.find({ _id: { $in: addressIds } }).exec(),
+      this.userModel.find({ _id: { $in: userIds } }).exec(),
+      this.connection.db.collection('items').find({ itemid: { $in: productIds } }).toArray()
+    ]);
+
+    const addressMap = Object.fromEntries(addresses.map(address => [address._id, address]));
+    const userMap = Object.fromEntries(users.map(user => [user._id, user]));
+    const itemMap = Object.fromEntries(items.map(item => [item.itemid, item]));
+
+    orders.forEach(order => {
+      order.address = addressMap[order?.address?.toString()];
+      order.user = userMap[order?.user?.toString()];
+
+      order.products.forEach(product => {
+        product.details = itemMap[product.itemId];
+      });
+    });
 
 
-
-      const addressComplete = await this.addressModel.findOne({ _id: order.address })
-      console.log(order.address, addressComplete)
-      if (addressComplete) {
-        order.address = addressComplete
-      }
-      for (const product of order.products) {
-
-        const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
-
-
-        if (item) {
-          product.details = item
-
-        }
-        // const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
-        // console.log(rating)
-        // if (rating) {
-        //   product.details.rating = rating;
-        // } else {
-        //   product.details.rating = 0
-        // }
-
-
-      }
-    }
-    // console.log(orders)
-    return orders;
+    const response = orders.filter((order) => {
+      return `${order.preOrder.type}` == orderType;
+    })
+    // console.log(response)
+    return response;
   }
+
   async findOrdersByTimePeriod(period: 'today' | 'week' | 'month') {
     let startDate: Date;
     let endDate: Date;
@@ -206,7 +269,7 @@ export class OrderService {
   async createOrder(body) {
     const { userId, orderPreference } = body;
     if (!userId) {
-      console.log("user id not found")
+      // console.log("user id not found")
       return { message: "error" }
     }
     const { couponId } = body.discount;
@@ -223,13 +286,14 @@ export class OrderService {
       const discountBody = {
         couponId,
         userId,
-        price: data.itemsTotal
+        price: data.itemsTotal,
+        toApply: true
       }
-      const userCart = await this.cartService.getUserCart(userId, discountBody)
+      const userCart = await this.couponService.decreaseUsage(discountBody)
 
       discount = userCart.discount
     }
-
+    console.log("discount--------------------", discount)
 
 
     const data = {
@@ -260,7 +324,7 @@ export class OrderService {
       sgst: userCart.sgst,
       discount: {
         couponId,
-        discount
+        discount: discount
       },
       itemsTotal: userCart.itemsTotal,
       grandTotal: userCart.grandTotal?.toFixed(2),
@@ -292,7 +356,7 @@ export class OrderService {
       sgst: userCart.sgst,
       discount: {
         couponId,
-        discount
+        discount: discount
       },
       itemsTotal: userCart.itemsTotal,
       grandTotal: userCart.grandTotal.toFixed(2),
@@ -385,11 +449,26 @@ export class OrderService {
   }
 
 
-  async updateOrderState(orderId: string, newState: string) {
+  async updateOrderState(orderId: string, newState) {
     const order = await this.orderModel.findOne({ _id: orderId });
-    const stateShow = order.state;
+    let stateShow = order.state;
+    // if (newState == 'OnTheWay') {
+    //   newState = 'on the way';
+    // }
+    let orderType = order.preOrder.type;
+
     await this.orderModel.findByIdAndUpdate(orderId, { state: newState, updatedAt: Date.now() }, { new: true }).exec();
-    return this.getAdminOrdersByState(stateShow)
+    const map = {
+      "pending": "Pending",
+      "processing": "Processing",
+      "cancelled": "Cancelled",
+      "completed": "Completed",
+      "ready": "OnTheWay",
+      "on the way": "OnTheWay"
+    }
+
+
+    return await this.getAdminOrdersByState(map[stateShow], orderType)
     // return this.getAllOrders()
   }
 

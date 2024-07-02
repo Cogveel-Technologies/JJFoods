@@ -26,13 +26,16 @@ export class Order {
 
   @Prop({
     type: {
-      couponId: { type: String }
+      couponId: { type: String },
+      discount: { type: Number }
 
     }
   })
   discount: {
-    couponId: string,
-    discount: string
+
+    discount: number,
+    couponId: string
+
 
   };
 

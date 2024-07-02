@@ -7,10 +7,11 @@ import { WishlistModule } from 'src/wishlist/wishlist.module';
 import { FeedbackModule } from 'src/feedback/feedback.module';
 import { FeedbackSchema } from 'src/feedback/schemas/feedback.schema';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AdminSchema } from 'src/auth/schemas/admin.schema';
 
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Wishlist', schema: WishlistSchema }, { name: 'Feedback', schema: FeedbackSchema }]), forwardRef(() => WishlistModule), forwardRef(() => FeedbackModule)],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Wishlist', schema: WishlistSchema }, { name: 'Feedback', schema: FeedbackSchema }, { name: 'Admin', schema: AdminSchema }]), forwardRef(() => WishlistModule), forwardRef(() => FeedbackModule)],
   controllers: [PetPoojaController],
   providers: [PetPoojaService],
   exports: [PetPoojaService]

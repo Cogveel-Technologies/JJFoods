@@ -9,6 +9,8 @@ import { Feedback } from 'src/feedback/schemas/feedback.schema';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 import * as dotenv from 'dotenv';
+import { Admin } from 'src/auth/schemas/admin.schema';
+import { HttpException, HttpStatus } from '@nestjs/common';
 const getCronInterval = () => {
 
   dotenv.config();
@@ -21,9 +23,14 @@ const getCronInterval = () => {
 @Injectable()
 export class PetPoojaService {
   constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Wishlist.name) private wishlistModel: Model<Wishlist>, @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>, @Inject(forwardRef(() => FeedbackService)) private readonly feedbackService: FeedbackService, @Inject(forwardRef(() => WishlistService)) private readonly wishlistService: WishlistService,
-    private configService: ConfigService) { }
+    private configService: ConfigService,
+    @InjectModel(Admin.name) private readonly adminModel: Model<Admin>) { }
 
   async searchItems(query: string) {
+    const admin = await this.adminModel.findOne();
+    if (!admin?.isOpen) {
+      return new HttpException('restaurant is not open', 450);
+    }
     // console.log('Search query:', query, typeof query);
     try {
       const sanitizedQuery = query.trim();
@@ -134,6 +141,10 @@ export class PetPoojaService {
 
 
   async menu() {
+    const admin = await this.adminModel.findOne();
+    if (!admin?.isOpen) {
+      return new HttpException('restaurant is not open', 450);
+    }
     const categories = await this.connection.collection('categories').find().toArray()
     const items = await this.connection.collection('items').find().toArray()
 

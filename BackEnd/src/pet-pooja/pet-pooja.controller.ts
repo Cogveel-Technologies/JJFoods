@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { PetPoojaService } from './pet-pooja.service';
 
 @Controller('petPooja')
@@ -15,6 +15,9 @@ export class PetPoojaController {
   async hello(): Promise<any> {
     return this.petPoojaService.menu()
   }
+
+
+
 
 
 

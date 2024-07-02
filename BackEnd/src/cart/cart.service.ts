@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Connection, Model } from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
 import { Cart } from './schemas/cart.schema';
+import { Admin } from 'src/auth/schemas/admin.schema';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectConnection() private readonly connection: Connection,
     @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(Cart.name) private cartModel: Model<Cart>
+    @InjectModel(Cart.name) private cartModel: Model<Cart>,
+    @InjectModel(Admin.name) private adminModel: Model<Admin>
   ) { }
   async bulkAddCart(body) {
     const { userId, products } = body;
@@ -55,6 +57,10 @@ export class CartService {
 
   async addCart(body) {
     // console.log(body)
+    const admin = await this.adminModel.findOne();
+    if (!admin?.isOpen) {
+      return new HttpException('restaurant is not open', 450);
+    }
     const { userId } = body;
     const { itemId } = body.product;
     const { quantity } = body
@@ -94,6 +100,10 @@ export class CartService {
   };
 
   async getUserCart(userId, body) {
+    const admin = await this.adminModel.findOne();
+    if (!admin?.isOpen) {
+      throw new HttpException('restaurant is not open', 450);
+    }
     // console.log("req", userId, body.discount)
     let discount = 0;
     let deliveryFee = 0;
@@ -118,7 +128,8 @@ export class CartService {
         sgst: 0,
         discount: 0,
         deliveryFee: 0,
-        grandTotal: 0
+        grandTotal: 0,
+        newData: []
       }
     }
 
@@ -156,7 +167,8 @@ export class CartService {
 
 
     // console.log(newData);
-    return { newData, itemsTotal, cgst, sgst, platformFee, grandTotal, discount, deliveryFee, cartLength };
+    let res = { newData, itemsTotal, cgst, sgst, platformFee, grandTotal, discount, deliveryFee, cartLength };
+    return res;
   }
 
   // async getCartNumber(body) {
