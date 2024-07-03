@@ -76,6 +76,11 @@ export class PetPoojaService {
   }
 
   async getItemById(id, user) {
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails.isOpen) {
+      // return new HttpException('restaurant is not open', 450);
+      return { restaurantStatus: false }
+    }
     try {
       const feedback = await this.feedbackService.getRating(id)
 
