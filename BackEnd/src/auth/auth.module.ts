@@ -12,10 +12,29 @@ import { SignupOtp, SignupOtpSchema } from './schemas/signupOtp.schema';
 import { CartModule } from '../cart/cart.module';
 import { CartSchema } from 'src/cart/schemas/cart.schema';
 import { Admin, AdminSchema } from './schemas/admin.schema';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './jwt.strategy';
+import { RestaurantDetails, RestaurantDetailsSchema } from './schemas/restaurant.schema';
+
 
 
 @Module({
   imports: [
+    PassportModule.register({
+      defaultStrategy: 'jwt'
+    }),
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return {
+          secret: config.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: config.get<string | number>('JWT_EXPIRATION_TIME')
+          }
+        }
+      }
+    }),
     ConfigModule,
     HttpModule,
     MongooseModule.forFeature([
@@ -23,7 +42,8 @@ import { Admin, AdminSchema } from './schemas/admin.schema';
       { name: Address.name, schema: AddressSchema },
       { name: SignupOtp.name, schema: SignupOtpSchema },
       { name: "Cart", schema: CartSchema },
-      { name: Admin.name, schema: AdminSchema }
+      { name: Admin.name, schema: AdminSchema },
+      { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }
     ]),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
@@ -41,7 +61,8 @@ import { Admin, AdminSchema } from './schemas/admin.schema';
     }),
     forwardRef(() => CartModule)
   ],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
+  exports: [JwtStrategy, PassportModule]
 })
 export class AuthModule { }

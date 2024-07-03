@@ -7,9 +7,11 @@ import { UserSchema } from 'src/auth/schemas/user.schema';
 import { DeliverySchema } from './schemas/delivery.schema';
 
 import { Admin, AdminSchema } from 'src/auth/schemas/admin.schema';
+import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/restaurant.schema';
+
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Cart', schema: CartSchema }, { name: 'User', schema: UserSchema }, { name: 'CartItem', schema: CartItemSchema }, { name: 'Delivery', schema: DeliverySchema }, { name: Admin.name, schema: AdminSchema }])],
+  imports: [MongooseModule.forFeature([{ name: 'Cart', schema: CartSchema }, { name: 'User', schema: UserSchema }, { name: 'CartItem', schema: CartItemSchema }, { name: 'Delivery', schema: DeliverySchema }, { name: Admin.name, schema: AdminSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }])],
   controllers: [CartController],
   providers: [CartService],
   exports: [CartService]

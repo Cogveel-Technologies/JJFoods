@@ -306,7 +306,7 @@ export class OrderService {
     const userCart = await this.cartService.getUserCart(userId, data)
 
 
-    const products = userCart.newData.map((item) => {
+    const products = userCart?.newData?.map((item) => {
 
       return {
         itemId: item['itemid'],
@@ -320,15 +320,15 @@ export class OrderService {
     const orderBody = {
       user: userId,
       products,
-      cgst: userCart.cgst,
-      sgst: userCart.sgst,
+      cgst: userCart?.cgst,
+      sgst: userCart?.sgst,
       discount: {
         couponId,
         discount: discount
       },
-      itemsTotal: userCart.itemsTotal,
-      grandTotal: userCart.grandTotal?.toFixed(2),
-      deliveryFee: userCart.deliveryFee,
+      itemsTotal: userCart?.itemsTotal,
+      grandTotal: userCart?.grandTotal?.toFixed(2),
+      deliveryFee: userCart?.deliveryFee,
       platformFee: 15,
       orderPreference,
       address: body.address ? body.address : undefined,
@@ -352,15 +352,15 @@ export class OrderService {
     const petPoojaOrderBody = {
       user: await this.userModel.findOne({ _id: userId }),
       products,
-      cgst: userCart.cgst,
-      sgst: userCart.sgst,
+      cgst: userCart?.cgst,
+      sgst: userCart?.sgst,
       discount: {
         couponId,
         discount: discount
       },
-      itemsTotal: userCart.itemsTotal,
-      grandTotal: userCart.grandTotal.toFixed(2),
-      deliveryFee: userCart.deliveryFee,
+      itemsTotal: userCart?.itemsTotal,
+      grandTotal: userCart?.grandTotal.toFixed(2),
+      deliveryFee: userCart?.deliveryFee,
       platformFee: 15,
       orderPreference,
       address: body.address ? await this.addressModel.findOne({ _id: body.address }) : undefined,
