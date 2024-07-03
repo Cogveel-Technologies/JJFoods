@@ -241,7 +241,11 @@ export class AuthService {
   async getRestaurantStatus() {
     const restaurantDetails = await this.restaurantModel.findOne()
     if (!restaurantDetails) {
-      throw new Error("error");
+      await this.restaurantModel.create({ isOpen: true });
+      return {
+        "state": true
+      }
+      // throw new Error("error");
     }
     return {
       "state": restaurantDetails?.isOpen
