@@ -18,6 +18,7 @@ import { CartService } from 'src/cart/cart.service';
 import { Admin } from './schemas/admin.schema';
 import { JwtService } from '@nestjs/jwt';
 import { RestaurantDetails } from './schemas/restaurant.schema';
+import { NotificationService } from 'src/notification/notification.service';
 
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
@@ -33,7 +34,9 @@ export class AuthService {
     private readonly cartService: CartService,
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
     private jwtService: JwtService,
-    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>) {
+    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>,
+    @Inject(NotificationService)
+    private readonly notificationService: NotificationService) {
 
   }
   bucket = admin.storage().bucket();
@@ -231,7 +234,12 @@ export class AuthService {
     }
     restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
     // await admin.save();
+
     await restaurantDetails.save();
+    if(!restaurantDetails.isOpen)
+      {
+    await this.notificationService.sendPushNotificationsToUsers1()
+      }
     return {
       "state": restaurantDetails.isOpen
     }

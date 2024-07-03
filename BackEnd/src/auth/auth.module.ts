@@ -16,11 +16,12 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { RestaurantDetails, RestaurantDetailsSchema } from './schemas/restaurant.schema';
+import { NotificationModule } from 'src/notification/notification.module';
 
 
 
 @Module({
-  imports: [
+  imports: [NotificationModule,
     PassportModule.register({
       defaultStrategy: 'jwt'
     }),
