@@ -11,6 +11,7 @@ import { Cron } from '@nestjs/schedule';
 import * as dotenv from 'dotenv';
 import { Admin } from 'src/auth/schemas/admin.schema';
 import { HttpException, HttpStatus } from '@nestjs/common';
+import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 const getCronInterval = () => {
 
   dotenv.config();
@@ -24,11 +25,13 @@ const getCronInterval = () => {
 export class PetPoojaService {
   constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Wishlist.name) private wishlistModel: Model<Wishlist>, @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>, @Inject(forwardRef(() => FeedbackService)) private readonly feedbackService: FeedbackService, @Inject(forwardRef(() => WishlistService)) private readonly wishlistService: WishlistService,
     private configService: ConfigService,
-    @InjectModel(Admin.name) private readonly adminModel: Model<Admin>) { }
+    @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
+    @InjectModel(RestaurantDetails.name) private readonly restaurantModel: Model<RestaurantDetails>) { }
 
   async searchItems(query: string) {
-    const admin = await this.adminModel.findOne();
-    if (!admin?.isOpen) {
+
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails.isOpen) {
       return new HttpException('restaurant is not open', 450);
     }
     // console.log('Search query:', query, typeof query);
@@ -141,9 +144,14 @@ export class PetPoojaService {
 
 
   async menu() {
-    const admin = await this.adminModel.findOne();
-    if (!admin?.isOpen) {
-      return new HttpException('restaurant is not open', 450);
+    // const admin = await this.adminModel.findOne();
+    // if (!admin?.isOpen) {
+    //   return new HttpException('restaurant is not open', 450);
+    // }
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails.isOpen) {
+      // return new HttpException('restaurant is not open', 450);
+      return { restaurantStatus: false }
     }
     const categories = await this.connection.collection('categories').find().toArray()
     const items = await this.connection.collection('items').find().toArray()

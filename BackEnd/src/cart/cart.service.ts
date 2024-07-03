@@ -4,6 +4,8 @@ import mongoose, { Connection, Model } from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
 import { Cart } from './schemas/cart.schema';
 import { Admin } from 'src/auth/schemas/admin.schema';
+import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
+
 
 @Injectable()
 export class CartService {
@@ -11,7 +13,8 @@ export class CartService {
     @InjectConnection() private readonly connection: Connection,
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
-    @InjectModel(Admin.name) private adminModel: Model<Admin>
+    @InjectModel(Admin.name) private adminModel: Model<Admin>,
+    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>
   ) { }
   async bulkAddCart(body) {
     const { userId, products } = body;
@@ -57,8 +60,8 @@ export class CartService {
 
   async addCart(body) {
     // console.log(body)
-    const admin = await this.adminModel.findOne();
-    if (!admin?.isOpen) {
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails.isOpen) {
       return new HttpException('restaurant is not open', 450);
     }
     const { userId } = body;
@@ -100,9 +103,23 @@ export class CartService {
   };
 
   async getUserCart(userId, body) {
-    const admin = await this.adminModel.findOne();
-    if (!admin?.isOpen) {
-      throw new HttpException('restaurant is not open', 450);
+    // const admin = await this.adminModel.findOne();
+    // if (!admin?.isOpen) {
+    //   throw new HttpException('restaurant is not open', 450);
+    // }
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails.isOpen) {
+      return {
+        itemsTotal: 0,
+        cgst: 0,
+        sgst: 0,
+        discount: 0,
+        deliveryFee: 0,
+        grandTotal: 0,
+        newData: [],
+        restaurantStatus: false
+      }
+      // return new HttpException('restaurant is not open', 450);
     }
     // console.log("req", userId, body.discount)
     let discount = 0;

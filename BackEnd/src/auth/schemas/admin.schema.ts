@@ -35,8 +35,8 @@ export class Admin {
   @Prop()
   deviceToken: string;
 
-  @Prop()
-  isOpen: boolean;
+  // @Prop()
+  // isOpen: boolean;
 }
 
 export const AdminSchema = SchemaFactory.createForClass(Admin);

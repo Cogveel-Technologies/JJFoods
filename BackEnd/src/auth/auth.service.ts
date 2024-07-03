@@ -16,6 +16,9 @@ import { ConfigService } from '@nestjs/config';
 import { NotFoundError } from 'rxjs';
 import { CartService } from 'src/cart/cart.service';
 import { Admin } from './schemas/admin.schema';
+import { JwtService } from '@nestjs/jwt';
+import { RestaurantDetails } from './schemas/restaurant.schema';
+
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
 @Injectable()
@@ -28,7 +31,9 @@ export class AuthService {
     private configService: ConfigService,
     @Inject(forwardRef(() => CartService))
     private readonly cartService: CartService,
-    @InjectModel(Admin.name) private adminModel: Model<Admin>) {
+    @InjectModel(Admin.name) private adminModel: Model<Admin>,
+    private jwtService: JwtService,
+    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>) {
 
   }
   bucket = admin.storage().bucket();
@@ -217,26 +222,29 @@ export class AuthService {
       throw new HttpException(`Failed to update profile: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  async restaurantStatus(body) {
-    const admin = await this.adminModel.findOne({ _id: body.admin })
-    if (!admin) {
-      throw new Error("cant access")
+  async restaurantStatus() {
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails) {
+      await this.restaurantModel.create({ isOpen: true });
+      this.restaurantStatus()
+      return this.getRestaurantStatus()
     }
-    admin?.isOpen ? admin.isOpen = false : admin.isOpen = true;
-    await admin.save();
+    restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
+    // await admin.save();
+    await restaurantDetails.save();
     return {
-      "state": admin.isOpen
+      "state": restaurantDetails.isOpen
     }
 
 
   }
-  async getRestaurantStatus(id) {
-    const admin = await this.adminModel.findOne({ _id: id })
-    if (!admin) {
-      throw new Error("admin not found");
+  async getRestaurantStatus() {
+    const restaurantDetails = await this.restaurantModel.findOne()
+    if (!restaurantDetails) {
+      throw new Error("error");
     }
     return {
-      "state": admin?.isOpen
+      "state": restaurantDetails?.isOpen
     }
 
   }
@@ -547,6 +555,8 @@ export class AuthService {
       // Save the user to the database
       await createdUser.save();
       await this.cartService.bulkAddCart({ userId: createdUser._id, products: signupDto?.products })
+      const token = this.jwtService.sign({ id: user._id });
+      return { token, createdUser }
       return createdUser;
     } catch (error) {
       // Handle errors
@@ -621,8 +631,10 @@ export class AuthService {
       }
       user.deviceToken = loginDto?.deviceToken;
       await user.save()
+      const token = this.jwtService.sign({ id: user._id });
+      return { token, user }
 
-      return user;
+
     } catch (error) {
       // Handle errors
       throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);

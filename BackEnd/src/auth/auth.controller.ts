@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -19,6 +21,7 @@ import { SignupOtpDto } from './dtos/signupOtp.dto';
 import { LoginDto } from './dtos/login.dto';
 import { UpdateProfileOtpDto } from './dtos/updateProfileOtp.dto';
 import { UpdateProfileDto } from './dtos/updateProfile.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -45,16 +48,16 @@ export class AuthController {
 
   }
   //rbac
-  @Put('/restaurantStatus')
-  restaurantStatus(@Body() body) {
-    console.log(body)
-    return this.authService.restaurantStatus(body);
+  @Put('/updateRestaurantStatus')
+  restaurantStatus() {
+    // console.log(body)
+    return this.authService.restaurantStatus();
   }
 
-  @Get('/restaurantStatus/:id')
-  getRestaurantStatus(@Param('id') id) {
-    console.log(id)
-    return this.authService.getRestaurantStatus(id);
+  @Get('/getRestaurantStatus')
+  getRestaurantStatus() {
+
+    return this.authService.getRestaurantStatus();
   }
   @Post('/superadmin1')
   superAdmin(@Body() body) {
@@ -167,5 +170,12 @@ export class AuthController {
   @Get('/automaticAddress/:ip')
   automaticAddress(@Param('ip') ip: string) {
     return this.authService.automaticAddress(ip);
+  }
+
+  @Get('/nisaruncle')
+  @UseGuards(AuthGuard())
+  nisaruncle(@Req() req) {
+    return req.user;
+
   }
 }
