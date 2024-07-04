@@ -26,4 +26,13 @@ export class CouponController {
     console.log("requesttt")
     return this.couponService.findAll(userId);
   }
+
+  @Get('/guest')
+  findAllGuest() {
+    console.log("requesttt")
+    return this.couponService.findAllGuest();
+  }
+
+
+
 }

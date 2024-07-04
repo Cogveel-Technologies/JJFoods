@@ -119,4 +119,17 @@ export class CouponService {
     return availableCoupons;
   }
 
+  async findAllGuest() {
+    const currentDate = new Date();
+
+    const availableCoupons = await this.couponModel.find({
+
+      validFrom: { $lte: currentDate },
+      validTo: { $gte: currentDate },
+    }).exec();
+
+    return availableCoupons;
+
+  }
+
 }
