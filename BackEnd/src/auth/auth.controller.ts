@@ -173,9 +173,16 @@ export class AuthController {
   }
 
   @Get('/nisaruncle')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard('user-jwt'))
   nisaruncle(@Req() req) {
     return req.user;
+
+  }
+
+  @Get('/husban')
+  @UseGuards(AuthGuard('admin-jwt'))
+  husban(@Req() req) {
+    return req.admin;
 
   }
 }

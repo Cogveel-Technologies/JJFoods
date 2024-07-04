@@ -2,16 +2,17 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy, ExtractJwt } from 'passport-jwt'
-import { User } from "./schemas/user.schema";
+
 import { Model } from "mongoose";
+import { Admin } from "./schemas/admin.schema";
 
 
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'user-jwt') {
+export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   constructor(
-    @InjectModel(User.name)
-    private userModel: Model<User>
+    @InjectModel(Admin.name)
+    private adminModel: Model<Admin>
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -22,12 +23,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'user-jwt') {
 
   async validate(payload: any) {
     const { id } = payload;
-    const user = await this.userModel.findById(id);
+    const admin = await this.adminModel.findById(id);
 
-    if (!user) {
+    if (!admin) {
       throw new UnauthorizedException('Not authorized')
     }
-    return user;
+    return admin;
   }
 
 

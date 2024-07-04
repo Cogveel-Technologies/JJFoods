@@ -17,6 +17,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { RestaurantDetails, RestaurantDetailsSchema } from './schemas/restaurant.schema';
 import { NotificationModule } from 'src/notification/notification.module';
+import { JwtAdminStrategy } from './jwtAdmin.strategy';
 
 
 
@@ -62,8 +63,8 @@ import { NotificationModule } from 'src/notification/notification.module';
     }),
     forwardRef(() => CartModule)
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtAdminStrategy],
   controllers: [AuthController],
-  exports: [JwtStrategy, PassportModule]
+  exports: [JwtStrategy, PassportModule, JwtAdminStrategy]
 })
 export class AuthModule { }

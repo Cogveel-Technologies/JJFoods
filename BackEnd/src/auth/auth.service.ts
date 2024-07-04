@@ -175,13 +175,16 @@ export class AuthService {
     if (!isPasswordMatch) {
       throw new UnauthorizedException('invalid credentials')
     }
+    const token = this.jwtService.sign({ id: admin._id });
 
-    return {
+
+    const admins = {
       "_id": admin._id,
       "emailId": admin.emailId,
       "name": admin.name,
       "phoneNumber": admin.phoneNumber
     };
+    return { token, admins }
 
 
   }
