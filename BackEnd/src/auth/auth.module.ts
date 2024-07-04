@@ -18,6 +18,10 @@ import { JwtStrategy } from './jwt.strategy';
 import { RestaurantDetails, RestaurantDetailsSchema } from './schemas/restaurant.schema';
 import { NotificationModule } from 'src/notification/notification.module';
 import { JwtAdminStrategy } from './jwtAdmin.strategy';
+import { UserJwtGuard } from './guards/user-jwt.guard';
+import { AdminJwtGuard } from './guards/admin-jwt.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+
 
 
 
@@ -63,8 +67,8 @@ import { JwtAdminStrategy } from './jwtAdmin.strategy';
     }),
     forwardRef(() => CartModule)
   ],
-  providers: [AuthService, JwtStrategy, JwtAdminStrategy],
+  providers: [AuthService, JwtStrategy, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard],
   controllers: [AuthController],
-  exports: [JwtStrategy, PassportModule, JwtAdminStrategy]
+  exports: [JwtStrategy, PassportModule, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard]
 })
 export class AuthModule { }

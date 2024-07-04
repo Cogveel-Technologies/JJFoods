@@ -22,6 +22,8 @@ import { LoginDto } from './dtos/login.dto';
 import { UpdateProfileOtpDto } from './dtos/updateProfileOtp.dto';
 import { UpdateProfileDto } from './dtos/updateProfile.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+
 
 @Controller('auth')
 export class AuthController {
@@ -34,7 +36,9 @@ export class AuthController {
 
   @Post('/superAdmin')
   superAdminLogin(@Body() body) {
-    return this.authService.superAdminLogin(body);
+    console.log(body)
+    const res = this.authService.superAdminLogin(body);
+    return res;
   }
 
 
@@ -182,7 +186,17 @@ export class AuthController {
   @Get('/husban')
   @UseGuards(AuthGuard('admin-jwt'))
   husban(@Req() req) {
-    return req.admin;
+    console.log(req.user)
+    return req.user;
 
   }
+  @Get('/husbanuncle')
+  @UseGuards(JwtAuthGuard)
+  husbanuncle(@Req() req) {
+    console.log(req.user)
+    return req.user;
+
+  }
+
+
 }
