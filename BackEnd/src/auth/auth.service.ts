@@ -236,10 +236,12 @@ export class AuthService {
     // await admin.save();
 
     await restaurantDetails.save();
-    if(!restaurantDetails.isOpen)
-      {
-    await this.notificationService.sendPushNotificationsToUsers1()
-      }
+    if (!restaurantDetails.isOpen) {
+      await this.notificationService.sendPushNotificationsToUsers1()
+    }
+    else {
+      await this.notificationService.sendPushNotificationsToUsers2()
+    }
     return {
       "state": restaurantDetails.isOpen
     }
