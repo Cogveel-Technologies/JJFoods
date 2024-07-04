@@ -125,7 +125,7 @@ export class CouponService {
     const availableCoupons = await this.couponModel.find({
 
       validFrom: { $lte: currentDate },
-      validTo: { $gte: currentDate },
+      validTo: { $gte: currentDate }
     }).exec();
 
     return availableCoupons;
