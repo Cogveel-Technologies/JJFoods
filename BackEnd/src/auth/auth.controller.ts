@@ -23,6 +23,7 @@ import { UpdateProfileOtpDto } from './dtos/updateProfileOtp.dto';
 import { UpdateProfileDto } from './dtos/updateProfile.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminLoginDto } from './dtos/adminLogin.dto';
 
 
 @Controller('auth')
@@ -35,7 +36,7 @@ export class AuthController {
   }
 
   @Post('/superAdmin')
-  superAdminLogin(@Body() body) {
+  superAdminLogin(@Body() body: AdminLoginDto) {
     console.log(body)
     const res = this.authService.superAdminLogin(body);
     return res;
