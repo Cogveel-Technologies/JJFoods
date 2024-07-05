@@ -80,6 +80,11 @@ export class OrderController {
   }
 
 
+  @Post('orderAgain/:orderId')
+  async orderAgain(@Param('orderId') orderId: string) {
+    return this.orderService.orderAgain(orderId)
+  }
+
 
 
 
