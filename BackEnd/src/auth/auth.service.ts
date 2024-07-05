@@ -171,6 +171,10 @@ export class AuthService {
   }
   async superAdminLogin(body) {
     const admin = await this.adminModel.findOne({ emailId: body.emailId });
+    if (!admin) {
+      throw new UnauthorizedException('invalid credentials')
+    }
+
     const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
     if (!isPasswordMatch) {
       throw new UnauthorizedException('invalid credentials')
