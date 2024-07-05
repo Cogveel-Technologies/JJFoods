@@ -618,4 +618,34 @@ export class OrderService {
   async getOrderById(orderId: string) {
     return this.orderModel.findById(orderId).exec();
   }
+
+
+  async orderAgain(orderId: string) {
+
+    const order = await this.orderModel.findOne({ _id: orderId });
+    // {
+    //   product: { itemId: string };
+    //   userId: string;
+    //   quantity: number;
+    // }
+
+    for (let i = 0; i < order.products.length; i++) {
+      const body = {
+        product: { itemId: order.products[i].itemId },
+        userId: order.user,
+        quantity: order.products[i].quantity
+      }
+
+      await this.cartService.addCart(body)
+
+    }
+    return {
+      message: "added to cart"
+
+    }
+
+
+
+
+  }
 }
