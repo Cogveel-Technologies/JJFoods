@@ -76,12 +76,16 @@ export class PetPoojaService {
   }
 
   async getItemById(id, user) {
-    const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails.isOpen) {
-      // return new HttpException('restaurant is not open', 450);
-      return { restaurantStatus: false }
-    }
     try {
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        throw new HttpException('Restaurant details not found', 404);
+      }
+      if (!restaurantDetails.isOpen) {
+        // return new HttpException('restaurant is not open', 450);
+        return { restaurantStatus: false }
+      }
+
       const feedback = await this.feedbackService.getRating(id)
 
       const itemDetail = await this.connection.collection('items').aggregate([
@@ -148,24 +152,55 @@ export class PetPoojaService {
 
 
 
-  async menu() {
-    // const admin = await this.adminModel.findOne();
-    // if (!admin?.isOpen) {
-    //   return new HttpException('restaurant is not open', 450);
-    // }
-    const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails.isOpen) {
-      // return new HttpException('restaurant is not open', 450);
-      return { restaurantStatus: false }
-    }
-    const categories = await this.connection.collection('categories').find().toArray()
-    const items = await this.connection.collection('items').find().toArray()
+  // async menu() {
+  //   // const admin = await this.adminModel.findOne();
+  //   // if (!admin?.isOpen) {
+  //   //   return new HttpException('restaurant is not open', 450);
+  //   // }
+  //   const restaurantDetails = await this.restaurantModel.findOne();
+  //   if (!restaurantDetails.isOpen) {
+  //     // return new HttpException('restaurant is not open', 450);
+  //     return { restaurantStatus: false }
+  //   }
+  //   const categories = await this.connection.collection('categories').find().toArray()
+  //   const items = await this.connection.collection('items').find().toArray()
 
-    return {
-      categories: categories,
-      items: items
+  //   return {
+  //     categories: categories,
+  //     items: items
+  //   }
+  // }
+  async menu() {
+    try {
+      // Check if the restaurant is open
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        throw new HttpException('Restaurant details not found', 404);
+      }
+      if (!restaurantDetails.isOpen) {
+        return { restaurantStatus: false };
+      }
+
+      // Retrieve categories and items
+      const categories = await this.connection.collection('categories').find().toArray();
+      const items = await this.connection.collection('items').find().toArray();
+
+      return {
+        categories: categories,
+        items: items,
+      };
+    } catch (error) {
+      // Handle specific known errors
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Log the error and return a generic error response
+      console.error('An error occurred in the menu method:', error);
+      throw new HttpException('Internal server error', 500);
     }
   }
+
 
 
   @Cron(getCronInterval())

@@ -208,7 +208,7 @@ export class RazorpayService {
 
 
   async handleFailure(body) {
-    console.log("handle failure is called-----------------------------------", body)
+    // console.log("handle failure is called-----------------------------------", body)
     const order = await this.orderModel.findById(body.orderId)
 
 

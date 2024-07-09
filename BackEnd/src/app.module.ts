@@ -17,6 +17,7 @@ import { AccessControlModule } from 'nest-access-control';
 import { roles } from './auth/user.roles';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -51,7 +52,11 @@ import { NotificationModule } from './notification/notification.module';
     RazorpayModule,
     AccessControlModule.forRoles(roles),
     ScheduleModule.forRoot(),
-    NotificationModule
+    NotificationModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 10,
+    }])
   ],
   controllers: [AppController],
   providers: [AppService],
