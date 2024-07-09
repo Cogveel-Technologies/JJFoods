@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PetPoojaService } from './pet-pooja.service';
+import { AuthGuard } from '@nestjs/passport';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 @Controller('petPooja')
 export class PetPoojaController {
@@ -7,7 +9,7 @@ export class PetPoojaController {
   constructor(private readonly petPoojaService: PetPoojaService) { }
   @Get('menu')
   fetchMenu(): any {
-    console.log("request")
+    // console.log("request")
     return this.petPoojaService.menu()
   }
 
@@ -22,10 +24,12 @@ export class PetPoojaController {
 
 
   @Post('saveOrder')
+  @UseGuards(AuthGuard('user-jwt'))
   saveOrder(@Body() body) {
     return this.petPoojaService.saveOrder(body)
   }
   @Post('updateData')
+  @UseGuards(AuthGuard('admin-jwt'))
   async updateData() {
     try {
       const data = await this.petPoojaService.fetchMenu();
@@ -41,6 +45,7 @@ export class PetPoojaController {
   }
 
   @Post('/:id')
+  // @UseGuards(AuthGuard('user-jwt'))
   async getItemById(@Param('id') id: string, @Body() body) {
     // console.log("body", body)
     const response = await this.petPoojaService.getItemById(id, body.userId)

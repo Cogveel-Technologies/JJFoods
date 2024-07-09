@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsNotEmpty, IsNumber, Max, Min } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString, Max, Min } from "class-validator";
 
 
 export class LoginDto {
@@ -16,4 +16,10 @@ export class LoginDto {
   @Min(1000000000)
   @Max(9999999999)
   phoneNumber: number;
+
+  @IsNotEmpty()
+  @IsString()
+  deviceToken: string;
+
+
 }

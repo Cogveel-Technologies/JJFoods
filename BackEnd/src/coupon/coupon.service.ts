@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
@@ -119,17 +119,35 @@ export class CouponService {
     return availableCoupons;
   }
 
+  // async findAllGuest() {
+  //   const currentDate = new Date();
+
+  //   const availableCoupons = await this.couponModel.find({
+
+  //     validFrom: { $lte: currentDate },
+  //     validTo: { $gte: currentDate }
+  //   }).exec();
+
+  //   return availableCoupons;
+
+  // }
+
   async findAllGuest() {
-    const currentDate = new Date();
+    try {
+      const currentDate = new Date();
 
-    const availableCoupons = await this.couponModel.find({
+      const availableCoupons = await this.couponModel.find({
+        validFrom: { $lte: currentDate },
+        validTo: { $gte: currentDate }
+      }).exec();
 
-      validFrom: { $lte: currentDate },
-      validTo: { $gte: currentDate }
-    }).exec();
-
-    return availableCoupons;
-
+      return availableCoupons;
+    } catch (error) {
+      // Log the error and return a generic error response
+      console.error('An error occurred in the findAllGuest method:', error);
+      throw new HttpException('Internal server error', 500);
+    }
   }
+
 
 }

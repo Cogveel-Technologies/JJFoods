@@ -19,6 +19,8 @@ import { Admin } from './schemas/admin.schema';
 import { JwtService } from '@nestjs/jwt';
 import { RestaurantDetails } from './schemas/restaurant.schema';
 import { NotificationService } from 'src/notification/notification.service';
+import { AdminLoginDto } from './dtos/adminLogin.dto';
+import { SignupOtpDto } from './dtos/signupOtp.dto';
 
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
@@ -62,7 +64,7 @@ export class AuthService {
         subject: 'Welcome to JJFoods!',
         html: welcomeMessage
       });
-      console.log(`Email sent successfully to ${email}`);
+      //console.log(`Email sent successfully to ${email}`);
     } catch (error) {
       console.error(`Error sending email to ${email}:`, error);
       // Handle the error (e.g., log it, send a notification, etc.)
@@ -116,7 +118,7 @@ export class AuthService {
 
       // Parse the response JSON
       const data = await response.json();
-      console.log('Success:', data);
+      //console.log('Success:', data);
 
       // Return the response data
       return data;
@@ -148,7 +150,7 @@ export class AuthService {
 
       // Parse the response JSON
       const data = await response.json();
-      console.log(data);
+      //console.log(data);
 
       return data;
     } catch (error) {
@@ -169,29 +171,65 @@ export class AuthService {
     // Return the validation code
     return validationCode;
   }
-  async superAdminLogin(body) {
-    const admin = await this.adminModel.findOne({ emailId: body.emailId });
-    if (!admin) {
-      throw new UnauthorizedException('invalid credentials')
+  // async superAdminLogin(body:AdminLoginDto) {
+  //   const admin = await this.adminModel.findOne({ emailId: body.emailId });
+  //   if (!admin) {
+  //     throw new UnauthorizedException('invalid credentials')
+  //   }
+
+  //   const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
+  //   if (!isPasswordMatch) {
+  //     throw new UnauthorizedException('invalid credentials')
+  //   }
+  //   const token = this.jwtService.sign({ id: admin._id });
+
+
+  //   const admins = {
+  //     "_id": admin._id,
+  //     "emailId": admin.emailId,
+  //     "name": admin.name,
+  //     "phoneNumber": admin.phoneNumber
+  //   };
+  //   return { token, admins }
+
+
+  // }
+  async superAdminLogin(body: AdminLoginDto) {
+    try {
+      const admin = await this.adminModel.findOne({ emailId: body.emailId });
+      if (!admin) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
+      if (!isPasswordMatch) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const token = this.jwtService.sign({ id: admin._id });
+
+      const adminDetails = {
+        _id: admin._id,
+        emailId: admin.emailId,
+        name: admin.name,
+        phoneNumber: admin.phoneNumber
+      };
+
+      return { token, adminDetails };
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error during super admin login:', error);
+
+      // Handle known exceptions
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      // Throw a generic internal server error for other cases
+      throw new HttpException('Internal server error', 500);
     }
-
-    const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
-    if (!isPasswordMatch) {
-      throw new UnauthorizedException('invalid credentials')
-    }
-    const token = this.jwtService.sign({ id: admin._id });
-
-
-    const admins = {
-      "_id": admin._id,
-      "emailId": admin.emailId,
-      "name": admin.name,
-      "phoneNumber": admin.phoneNumber
-    };
-    return { token, admins }
-
-
   }
+
   async superAdminUpdate(updateProfileDto: any, file: Express.Multer.File) {
     try {
 
@@ -232,58 +270,295 @@ export class AuthService {
       throw new HttpException(`Failed to update profile: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+  // async restaurantStatus() {
+  //   const restaurantDetails = await this.restaurantModel.findOne();
+  //   if (!restaurantDetails) {
+  //     await this.restaurantModel.create({ isOpen: true });
+  //     this.restaurantStatus()
+  //     return this.getRestaurantStatus()
+  //   }
+  //   restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
+  //   // await admin.save();
+
+  //   await restaurantDetails.save();
+  //   if (!restaurantDetails.isOpen) {
+  //     await this.notificationService.sendPushNotificationsToUsers1()
+  //   }
+  //   else {
+  //     await this.notificationService.sendPushNotificationsToUsers2()
+  //   }
+  //   return {
+  //     "state": restaurantDetails.isOpen
+  //   }
+
+
+  // }
   async restaurantStatus() {
-    const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails) {
-      await this.restaurantModel.create({ isOpen: true });
-      this.restaurantStatus()
-      return this.getRestaurantStatus()
-    }
-    restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
-    // await admin.save();
-
-    await restaurantDetails.save();
-    if (!restaurantDetails.isOpen) {
-      await this.notificationService.sendPushNotificationsToUsers1()
-    }
-    else {
-      await this.notificationService.sendPushNotificationsToUsers2()
-    }
-    return {
-      "state": restaurantDetails.isOpen
-    }
-
-
-  }
-  async getRestaurantStatus() {
-    const restaurantDetails = await this.restaurantModel.findOne()
-    if (!restaurantDetails) {
-      await this.restaurantModel.create({ isOpen: true });
-      return {
-        "state": true
+    try {
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        await this.restaurantModel.create({ isOpen: true });
+        await this.restaurantStatus(); // Await the recursive call
+        return this.getRestaurantStatus();
       }
-      // throw new Error("error");
-    }
-    return {
-      "state": restaurantDetails?.isOpen
-    }
+      restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
 
+      await restaurantDetails.save();
+      if (!restaurantDetails.isOpen) {
+        await this.notificationService.sendPushNotificationsToUsers1();
+      } else {
+        await this.notificationService.sendPushNotificationsToUsers2();
+      }
+      return {
+        "state": restaurantDetails.isOpen
+      };
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error updating restaurant status:', error);
+
+      // Throw a generic internal server error
+      throw new HttpException('Internal server error', 500);
+    }
   }
-  async superadmin(body) {
 
-    // console.log(body.password)
+  // async getRestaurantStatus() {
+  //   const restaurantDetails = await this.restaurantModel.findOne()
+  //   if (!restaurantDetails) {
+  //     await this.restaurantModel.create({ isOpen: true });
+  //     return {
+  //       "state": true
+  //     }
+  //     // throw new Error("error");
+  //   }
+  //   return {
+  //     "state": restaurantDetails?.isOpen
+  //   }
+
+  // }
+  async getRestaurantStatus() {
+    try {
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        await this.restaurantModel.create({ isOpen: true });
+        return {
+          state: true
+        };
+      }
+      return {
+        state: restaurantDetails?.isOpen
+      };
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error fetching restaurant status:', error);
+
+      // Throw a generic internal server error
+      throw new HttpException('Internal server error', 500);
+    }
+  }
+
+  async superadminSignup(body) {
+
+    // //console.log(body.password)
 
     const hashedPassword = await bcrypt.hash(body.password, 10);
     delete body.password;
 
     body["password"] = hashedPassword
-    // console.log(body)
+    // //console.log(body)
     await this.adminModel.create(body);
     return "done"
 
 
   }
-  async adminSignupOtp(signupOtpDto) {
+  // async adminSignupOtp(signupOtpDto) {
+  //   try {
+  //     const existingUserByEmail = await this.userModel.findOne({
+  //       emailId: signupOtpDto.emailId,
+  //     });
+  //     if (existingUserByEmail && existingUserByEmail.isActive) {
+  //       return new HttpException(
+  //         'User with this email already exists.',
+  //         HttpStatus.CONFLICT,
+  //       );
+  //     }
+
+  //     const existingUserByPhoneNumber = await this.userModel.findOne({
+  //       phoneNumber: signupOtpDto.phoneNumber,
+  //     });
+  //     if (existingUserByPhoneNumber && existingUserByPhoneNumber.isActive) {
+  //       return new HttpException(
+  //         'User with this phone number already exists.',
+  //         HttpStatus.CONFLICT,
+  //       );
+  //     }
+
+  //     const existingOtp = await this.signupOtpModel.findOne({
+  //       emailId: signupOtpDto.emailId,
+  //     });
+  //     let otp = this.generateOtp();
+  //     if (existingOtp) {
+  //       await this.signupOtpModel.findOneAndUpdate(
+  //         { emailId: signupOtpDto.emailId },
+  //         { otp },
+  //       );
+  //     } else {
+  //       const newUser = new this.signupOtpModel({
+  //         emailId: signupOtpDto.emailId,
+  //         otp,
+  //       });
+  //       await newUser.save();
+  //     }
+
+  //     const body = {
+  //       phoneNumber: signupOtpDto.phoneNumber,
+  //       otp,
+  //     };
+  //     this.smsGatewayOtp(body);
+
+  //     // Send email
+  //     this.sendMail(signupOtpDto.emailId, otp);
+
+  //     return { message: 'OTP sent' };
+  //   } catch (error) {
+  //     // Throw a custom HTTP exception with the error message
+  //     return new HttpException(
+  //       `Failed to sign up: ${error.message}`,
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
+  // async adminSignUp(signupDto) {
+  //   try {
+  //     // Check if user with the same email and phoneNumber already exists
+  //     const existingUser = await this.userModel.findOne({
+  //       emailId: signupDto.emailId,
+  //       phoneNumber: signupDto.phoneNumber
+  //     });
+  //     if (existingUser) {
+  //       throw new HttpException(
+  //         'User with this email already exists.',
+  //         HttpStatus.BAD_REQUEST,
+  //       );
+  //     }
+
+  //     // Check if user exists in OTP collection
+  //     const user = await this.signupOtpModel.findOne({ emailId: signupDto.emailId });
+  //     if (!user) {
+  //       throw new HttpException('User not exists', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     // Validate OTP
+  //     if (user.otp !== signupDto.otp) {
+  //       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     // Verify OTP with SMS gateway
+  //     const resp = await this.smsGatewayVerify({
+  //       phoneNumber: signupDto.phoneNumber,
+  //       otp: signupDto.otp,
+  //     });
+
+  //     // Check the response status
+  //     if (resp['Status'] === 'Error') {
+  //       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     // Create a new user instance
+  //     const createdUser = new this.userModel({
+  //       name: signupDto.name,
+  //       emailId: signupDto.emailId,
+  //       phoneNumber: signupDto.phoneNumber,
+  //       isAdmin: true
+  //     });
+
+  //     // Save the user to the database
+  //     await createdUser.save();
+  //     return createdUser;
+  //   } catch (error) {
+  //     // Handle errors
+  //     throw new HttpException(
+  //       `Failed to sign up: ${error.message}`,
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
+
+  // async adminLoginOtp(loginOtpDto) {
+  //   try {
+  //     // Find user by phone number
+  //     const user = await this.userModel.findOne({ phoneNumber: loginOtpDto.phoneNumber });
+  //     if (!user) {
+  //       return new HttpException('User not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
+  //     }
+  //     //is admin  
+  //     if (!user.isAdmin) {
+  //       return new HttpException('Admin not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
+  //     }
+
+
+  //     // Reactivate the user account if inactive
+  //     if (!user.isActive) {
+  //       user.isActive = true;
+  //       await user.save();
+  //     }
+
+  //     // Generate and update OTP for the user
+  //     const otp = this.generateOtp();
+  //     await this.signupOtpModel.findOneAndUpdate({ emailId: user.emailId }, { otp });
+
+  //     // Send OTP via SMS
+  //     const body = {
+  //       phoneNumber: loginOtpDto.phoneNumber,
+  //       otp
+  //     };
+  //     this.smsGatewayOtp(body);
+
+  //     // Send OTP via email
+  //     this.sendMail(user.emailId, otp);
+
+  //     return { data: 'OTP sent' };
+  //   } catch (error) {
+  //     // Handle errors
+  //     throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
+
+  // async adminLogin(loginDto) {
+  //   try {
+  //     // Find user by phone number
+  //     const user = await this.userModel.findOne({ phoneNumber: loginDto.phoneNumber });
+  //     if (!user) {
+  //       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+  //     }
+  //     //is admin  
+  //     if (!user.isAdmin) {
+  //       return new HttpException('Admin not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
+  //     }
+
+  //     // Verify OTP
+  //     const resp = await this.smsGatewayVerify({
+  //       phoneNumber: loginDto.phoneNumber,
+  //       otp: loginDto.otp
+  //     });
+  //     if (resp.Status === 'Error') {
+  //       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     // Retrieve OTP for user from the database
+  //     const userOtp = await this.signupOtpModel.findOne({ emailId: user.emailId });
+  //     if ((!userOtp) || (userOtp.otp !== loginDto.otp)) {
+  //       throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     return user;
+  //   } catch (error) {
+  //     // Handle errors
+  //     throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
+
+  async signupOtp(signupOtpDto: SignupOtpDto) {
+
     try {
       const existingUserByEmail = await this.userModel.findOne({
         emailId: signupOtpDto.emailId,
@@ -329,195 +604,7 @@ export class AuthService {
       this.smsGatewayOtp(body);
 
       // Send email
-      this.sendMail(signupOtpDto.emailId, otp);
-
-      return { message: 'OTP sent' };
-    } catch (error) {
-      // Throw a custom HTTP exception with the error message
-      return new HttpException(
-        `Failed to sign up: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-  async adminSignUp(signupDto) {
-    try {
-      // Check if user with the same email and phoneNumber already exists
-      const existingUser = await this.userModel.findOne({
-        emailId: signupDto.emailId,
-        phoneNumber: signupDto.phoneNumber
-      });
-      if (existingUser) {
-        throw new HttpException(
-          'User with this email already exists.',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-
-      // Check if user exists in OTP collection
-      const user = await this.signupOtpModel.findOne({ emailId: signupDto.emailId });
-      if (!user) {
-        throw new HttpException('User not exists', HttpStatus.BAD_REQUEST);
-      }
-
-      // Validate OTP
-      if (user.otp !== signupDto.otp) {
-        throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
-      }
-
-      // Verify OTP with SMS gateway
-      const resp = await this.smsGatewayVerify({
-        phoneNumber: signupDto.phoneNumber,
-        otp: signupDto.otp,
-      });
-
-      // Check the response status
-      if (resp['Status'] === 'Error') {
-        throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
-      }
-
-      // Create a new user instance
-      const createdUser = new this.userModel({
-        name: signupDto.name,
-        emailId: signupDto.emailId,
-        phoneNumber: signupDto.phoneNumber,
-        isAdmin: true
-      });
-
-      // Save the user to the database
-      await createdUser.save();
-      return createdUser;
-    } catch (error) {
-      // Handle errors
-      throw new HttpException(
-        `Failed to sign up: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async adminLoginOtp(loginOtpDto) {
-    try {
-      // Find user by phone number
-      const user = await this.userModel.findOne({ phoneNumber: loginOtpDto.phoneNumber });
-      if (!user) {
-        return new HttpException('User not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
-      }
-      //is admin  
-      if (!user.isAdmin) {
-        return new HttpException('Admin not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
-      }
-
-
-      // Reactivate the user account if inactive
-      if (!user.isActive) {
-        user.isActive = true;
-        await user.save();
-      }
-
-      // Generate and update OTP for the user
-      const otp = this.generateOtp();
-      await this.signupOtpModel.findOneAndUpdate({ emailId: user.emailId }, { otp });
-
-      // Send OTP via SMS
-      const body = {
-        phoneNumber: loginOtpDto.phoneNumber,
-        otp
-      };
-      this.smsGatewayOtp(body);
-
-      // Send OTP via email
-      this.sendMail(user.emailId, otp);
-
-      return { data: 'OTP sent' };
-    } catch (error) {
-      // Handle errors
-      throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async adminLogin(loginDto) {
-    try {
-      // Find user by phone number
-      const user = await this.userModel.findOne({ phoneNumber: loginDto.phoneNumber });
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-      }
-      //is admin  
-      if (!user.isAdmin) {
-        return new HttpException('Admin not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
-      }
-
-      // Verify OTP
-      const resp = await this.smsGatewayVerify({
-        phoneNumber: loginDto.phoneNumber,
-        otp: loginDto.otp
-      });
-      if (resp.Status === 'Error') {
-        throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
-      }
-
-      // Retrieve OTP for user from the database
-      const userOtp = await this.signupOtpModel.findOne({ emailId: user.emailId });
-      if ((!userOtp) || (userOtp.otp !== loginDto.otp)) {
-        throw new HttpException('Invalid OTP', HttpStatus.BAD_REQUEST);
-      }
-
-      return user;
-    } catch (error) {
-      // Handle errors
-      throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  async signupOtp(signupOtpDto) {
-
-    try {
-      const existingUserByEmail = await this.userModel.findOne({
-        emailId: signupOtpDto.emailId,
-      });
-      if (existingUserByEmail && existingUserByEmail.isActive) {
-        return new HttpException(
-          'User with this email already exists.',
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      const existingUserByPhoneNumber = await this.userModel.findOne({
-        phoneNumber: signupOtpDto.phoneNumber,
-      });
-      if (existingUserByPhoneNumber && existingUserByPhoneNumber.isActive) {
-        return new HttpException(
-          'User with this phone number already exists.',
-          HttpStatus.CONFLICT,
-        );
-      }
-
-      const existingOtp = await this.signupOtpModel.findOne({
-        emailId: signupOtpDto.emailId,
-      });
-      let otp = this.generateOtp();
-      if (existingOtp) {
-        await this.signupOtpModel.findOneAndUpdate(
-          { emailId: signupOtpDto.emailId },
-          { otp },
-        );
-      } else {
-        const newUser = new this.signupOtpModel({
-          emailId: signupOtpDto.emailId,
-          otp,
-        });
-        await newUser.save();
-      }
-
-      const body = {
-        phoneNumber: signupOtpDto.phoneNumber,
-        otp,
-      };
-      this.smsGatewayOtp(body);
-
-      // Send email
-      this.sendMail(signupOtpDto.emailId, otp);
+      // this.sendMail(signupOtpDto.emailId, otp);
 
       return { message: 'OTP sent' };
     } catch (error) {
@@ -576,7 +663,7 @@ export class AuthService {
       // Save the user to the database
       await createdUser.save();
       await this.cartService.bulkAddCart({ userId: createdUser._id, products: signupDto?.products })
-      const token = this.jwtService.sign({ id: user._id });
+      const token = this.jwtService.sign({ id: createdUser._id });
       return { token, createdUser }
       return createdUser;
     } catch (error) {
@@ -593,7 +680,7 @@ export class AuthService {
       // Find user by phone number
       const user = await this.userModel.findOne({ phoneNumber: loginOtpDto.phoneNumber });
       if (!user) {
-        return new HttpException('User not found. Please ignUp to continue.', HttpStatus.NOT_FOUND);
+        return new HttpException('User not found. Please SignUp to continue.', HttpStatus.NOT_FOUND);
       }
 
       // Reactivate the user account if inactive
@@ -614,7 +701,7 @@ export class AuthService {
       this.smsGatewayOtp(body);
 
       // Send OTP via email
-      this.sendMail(user.emailId, otp);
+      // this.sendMail(user.emailId, otp);
 
       return { data: 'OTP sent' };
     } catch (error) {
@@ -717,7 +804,7 @@ export class AuthService {
       // if (!image || !image.originalname) {
       //   throw new Error('Image file not provided');
       // }
-      // console.log(image)
+      // //console.log(image)
       const fileName = image.originalname;
       const fileUpload = this.bucket.file(fileName);
       const fileStream = image.buffer; // Use buffer for file data
@@ -804,7 +891,7 @@ export class AuthService {
   async addAddress(addressDto: any) {
     try {
       // Log the address DTO for debugging
-      console.log(addressDto);
+      // //console.log(addressDto);
 
       // If the address is marked as default, update all other addresses to non-default
       if (addressDto.isDefault) {
@@ -951,7 +1038,7 @@ export class AuthService {
 
     try {
       const response = await axios.request(options);
-      console.log(response.data);
+      //console.log(response.data);
       return response.data
     } catch (error) {
       throw new Error("enter valid ip")

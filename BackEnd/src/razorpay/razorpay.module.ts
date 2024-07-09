@@ -8,9 +8,11 @@ import { OrderSchema } from 'src/order/schemas/order.schema';
 import { ConfigModule } from '@nestjs/config';
 import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
 import { CartModule } from 'src/cart/cart.module';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, AuthModule],
   providers: [RazorpayService],
   controllers: [RazorpayController],
   exports: [RazorpayService]

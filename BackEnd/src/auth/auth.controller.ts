@@ -30,14 +30,14 @@ import { AdminLoginDto } from './dtos/adminLogin.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
-  @Post('/admin/signupOtp')
-  adminSignupOtp(@Body() body: any) {
-    return this.authService.adminSignupOtp(body)
-  }
+  // @Post('/admin/signupOtp')
+  // adminSignupOtp(@Body() body: any) {
+  //   return this.authService.adminSignupOtp(body)
+  // }
 
   @Post('/superAdmin')
   superAdminLogin(@Body() body: AdminLoginDto) {
-    console.log(body)
+    // console.log(body)
     const res = this.authService.superAdminLogin(body);
     return res;
   }
@@ -45,15 +45,17 @@ export class AuthController {
 
 
   @Put('/superAdmin/update')
+  @UseGuards(AuthGuard('admin-jwt'))
   @UseInterceptors(FileInterceptor('file'))
   superAdminUpdate(@Body() updateProfileDto,
     @UploadedFile() file: Express.Multer.File,) {
-    console.log("update called");
+    // console.log("update called");
     return this.authService.superAdminUpdate(updateProfileDto, file);
 
   }
   //rbac
   @Put('/updateRestaurantStatus')
+  @UseGuards(AuthGuard('admin-jwt'))
   restaurantStatus() {
     // console.log(body)
     return this.authService.restaurantStatus();
@@ -64,39 +66,45 @@ export class AuthController {
 
     return this.authService.getRestaurantStatus();
   }
+  //create a new admin
   @Post('/superadmin1')
-  superAdmin(@Body() body) {
-    return this.authService.superadmin(body)
+  superAdminSignup(@Body() body) {
+    return this.authService.superadminSignup(body)
   }
 
-  @Post('/admin/signup')
-  adminSignUp(@Body() body: any) {
-    return this.authService.adminSignUp(body)
-  }
+  // @Post('/admin/signup')
+  // adminSignUp(@Body() body: any) {
+  //   return this.authService.adminSignUp(body)
+  // }
 
-  @Post('/admin/loginOtp')
-  adminLoginOtp(@Body() body: any) {
-    return this.authService.adminLoginOtp(body)
-  }
+  // @Post('/admin/loginOtp')
+  // adminLoginOtp(@Body() body: any) {
+  //   return this.authService.adminLoginOtp(body)
+  // }
 
-  @Post('/admin/login')
-  adminLogin(@Body() body: any) {
-    return this.authService.adminLogin(body)
-  }
+  // @Post('/admin/login')
+  // adminLogin(@Body() body: any) {
+  //   return this.authService.adminLogin(body)
+  // }
   @Post('/check')
   check(@Body() body: any) {
     return this.authService.check(body);
   }
 
   @Post('/signupOtp')
-  signupOtp(@Body() signupOtpDto) {
-    return this.authService.signupOtp(signupOtpDto);
+  signupOtp(@Body() signupOtpDto: SignupOtpDto) {
+    // console.log(signupOtpDto)
+    const res = this.authService.signupOtp(signupOtpDto);
+    // console.log(res)
+    return res;
   }
 
   @Post('/signup')
   signUp(@Body() signupDto) {
-    console.log(signupDto)
-    return this.authService.signUp(signupDto);
+    // console.log(signupDto)
+    const res = this.authService.signUp(signupDto);
+    // console.log(res)
+    return res;
   }
 
   @Post('/loginOtp')
@@ -105,21 +113,24 @@ export class AuthController {
   }
 
   @Post('/login')
-  login(@Body() loginDto) {
+  login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
   @Post('/updatePhoneNumber')
+  @UseGuards(AuthGuard('user-jwt'))
   updatePhoneNumber(@Body() body: any) {
     return this.authService.updatePhoneNumber(body);
   }
 
   @Post('/updateEmailId')
+  @UseGuards(AuthGuard('user-jwt'))
   updateEmailId(@Body() updateProfileOtpDto: UpdateProfileOtpDto) {
     return this.authService.updateEmailId(updateProfileOtpDto);
   }
 
   @Put('/updateProfile')
+  @UseGuards(AuthGuard('user-jwt'))
   @UseInterceptors(FileInterceptor('file'))
   updateProfile(
     @Body() updateProfileDto: UpdateProfileDto,
@@ -131,43 +142,52 @@ export class AuthController {
 
 
   @Delete('/delete')
+  @UseGuards(AuthGuard('user-jwt'))
   deleteProfile(@Body() body: any) {
     return this.authService.deleteProfile(body);
   }
 
   // Address management
   @Post('/addAddress')
+  @UseGuards(AuthGuard('user-jwt'))
   addAddress(@Body() addressDto: any) {
     return this.authService.addAddress(addressDto);
   }
 
   @Get('/getAddresses/:id')
+  @UseGuards(AuthGuard('user-jwt'))
   getAddresses(@Param('id') id: string) {
     return this.authService.getAddresses(id);
   }
 
   @Get('/getAddress/:id')
+  @UseGuards(AuthGuard('user-jwt'))
   getAddress(@Param('id') id: string) {
     return this.authService.getAddress(id);
   }
 
   @Put('/updateAddress/:id')
+  @UseGuards(AuthGuard('user-jwt'))
   updateAddress(@Body() updateAddressDto: any, @Param('id') id: string) {
     return this.authService.updateAddress(updateAddressDto, id);
   }
 
   @Delete('/deleteAddress/:id')
+  @UseGuards(AuthGuard('user-jwt'))
   deleteAddress(@Param('id') id: string, @Body() body: any) {
     return this.authService.deleteAddress(id, body.userId);
   }
 
   @Get('/searchAddress/:userId')
+  @UseGuards(AuthGuard('user-jwt'))
   searchAddress(@Param('userId') userId, @Query('q') q
   ) {
     return this.authService.searchAddress(userId, q);
   }
 
+  //default address update
   @Put('/updateState/:id')
+  @UseGuards(AuthGuard('user-jwt'))
   async updateState(@Param('id') id: string, @Body() body: any) {
     return await this.authService.updateState(id, body.userId);
   }

@@ -30,7 +30,7 @@ export class FeedbackService {
     await newRating.save();
 
     delete body.orderId
-    console.log("----------------", body)
+    // console.log("----------------", body)
 
     await this.createOrUpdateRating(body)
     return await this.orderService.getOrderByCustomerId(body.userId, orderId)

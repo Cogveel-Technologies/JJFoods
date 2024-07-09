@@ -22,4 +22,11 @@ export class SignupDto {
   @Min(10000)
   @Max(99999)
   otp: number;
+
+  @IsNotEmpty()
+  @IsString()
+  deviceToken: string;
+
+
+
 }

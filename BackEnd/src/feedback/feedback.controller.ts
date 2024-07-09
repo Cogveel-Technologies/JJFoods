@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('feedback')
 export class FeedbackController {
@@ -9,6 +10,7 @@ export class FeedbackController {
   }
 
   @Post('/orderItemRating')
+  @UseGuards(AuthGuard('user-jwt'))
   async createOrderItemRating(@Body() body) {
     // console.log("feedback create", body)
 
@@ -16,6 +18,7 @@ export class FeedbackController {
   }
 
   @Post('/getOrderItemRating')
+  @UseGuards(AuthGuard('user-jwt'))
   async getOrderItemRating(@Body() body) {
 
     return this.feedbackService.getOrderItemRating(body)
@@ -28,6 +31,7 @@ export class FeedbackController {
 
   }
   @Post()
+  @UseGuards(AuthGuard('user-jwt'))
   createRating(@Body() body) {
 
     return this.feedbackService.createOrUpdateRating(body)
@@ -35,6 +39,7 @@ export class FeedbackController {
 
   }
   @Post('/review')
+  @UseGuards(AuthGuard('user-jwt'))
   async addReview(@Body() body) {
 
     const review = await this.feedbackService.addReview(body);
