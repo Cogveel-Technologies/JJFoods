@@ -34,7 +34,9 @@ export class PetPoojaController {
     try {
       const data = await this.petPoojaService.fetchMenu();
       await this.petPoojaService.updateDatabase(data);
-      return "updated";
+      return {
+        message: 'Data updated successfully'
+      };
     } catch (error) {
       throw new Error(error.message)
     }

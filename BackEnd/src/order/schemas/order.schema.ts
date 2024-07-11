@@ -90,13 +90,27 @@ export class Order {
     type: {
       orderId: { type: String },
       clientOrderId: { type: String },
-      restId: { type: String }
+      restId: { type: String },
+      status: { type: String },
+      cancel_reason: { type: String },
+      minimum_prep_time: { type: String },
+      minimum_delivery_time: { type: String },
+      rider_name: { type: String },
+      rider_phone_number: { type: String },
+      is_modified: { type: Boolean }
     }
   })
   petPooja: {
-    orderId: string,
-    clientOrderId: string,
-    restId: string
+    orderId?: string,
+    clientOrderId?: string,
+    restId?: string,
+    status?: string,
+    cancel_reason?: string,
+    minimum_prep_time?: string,
+    minimum_delivery_time?: string,
+    rider_name?: string,
+    rider_phone_number?: string,
+    is_modified?: boolean
   }
 
   @Prop({

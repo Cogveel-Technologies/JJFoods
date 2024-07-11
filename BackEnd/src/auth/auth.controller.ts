@@ -72,6 +72,12 @@ export class AuthController {
     return this.authService.superadminSignup(body)
   }
 
+
+  @Post('reservedadmin1')
+  reservedSignup(@Body() body) {
+    return this.authService.reservedSignup(body)
+  }
+
   // @Post('/admin/signup')
   // adminSignUp(@Body() body: any) {
   //   return this.authService.adminSignUp(body)
