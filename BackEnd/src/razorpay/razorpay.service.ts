@@ -111,7 +111,7 @@ export class RazorpayService {
       order.payment.status = true;
 
       //change order status
-      order.state = "processing"
+      order.state = "pending"
 
       //save razorpay details in order 
       order.payment.paymentId = rPaymentId

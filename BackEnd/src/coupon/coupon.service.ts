@@ -110,10 +110,16 @@ export class CouponService {
     });
 
     // Fetch all coupons that are not used and are still valid
+    // const availableCoupons = await this.couponModel.find({
+    //   _id: { $nin: usedCouponCodes },
+    //   validFrom: { $lte: currentDate },
+    //   validTo: { $gte: currentDate },
+    // }).exec();
     const availableCoupons = await this.couponModel.find({
       _id: { $nin: usedCouponCodes },
       validFrom: { $lte: currentDate },
       validTo: { $gte: currentDate },
+      usageLimit: { $ne: 0 } // Add this condition to filter out coupons with usageLimit 0
     }).exec();
 
     return availableCoupons;

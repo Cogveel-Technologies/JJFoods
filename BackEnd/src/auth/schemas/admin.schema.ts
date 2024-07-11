@@ -35,6 +35,9 @@ export class Admin {
   @Prop()
   deviceToken: string;
 
+  @Prop()
+  role: string;
+
   // @Prop()
   // isOpen: boolean;
 }

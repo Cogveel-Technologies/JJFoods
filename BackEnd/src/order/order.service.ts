@@ -32,6 +32,70 @@ export class OrderService {
     @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService,
     @InjectModel(Used.name) private readonly usedModel: Model<Used>
   ) { }
+  async processOrderStatusUpdate(data: any) {
+    const {
+      restID,
+      orderID,
+      status,
+      cancel_reason,
+      minimum_prep_time,
+      minimum_delivery_time,
+      rider_name,
+      rider_phone_number,
+      is_modified
+    } = data;
+
+    // Determine the state based on the status value
+    let state: string;
+    switch (status) {
+      case -1:
+        state = 'cancelled';
+        break;
+      case 1:
+      case 2:
+      case 3:
+        state = 'processing';
+        break;
+      case 4:
+        state = 'on the way';
+        break;
+      case 5:
+        state = 'ready';
+        break;
+      case 10:
+        state = 'completed';
+        break;
+      default:
+        throw new Error(`Unknown status value: ${status}`);
+    }
+
+    // Update the petPooja fields and the state in your database
+    await this.orderModel.updateOne(
+      { 'petPooja.orderId': orderID, 'petPooja.restId': restID },
+      {
+        $set: {
+          'petPooja.status': status,
+          'petPooja.cancel_reason': cancel_reason,
+          'petPooja.minimum_prep_time': minimum_prep_time,
+          'petPooja.minimum_delivery_time': minimum_delivery_time,
+          'petPooja.rider_name': rider_name,
+          'petPooja.rider_phone_number': rider_phone_number,
+          'petPooja.is_modified': is_modified,
+          state: state
+        }
+      }
+    ).exec();
+
+    // Check if cancelled, then refund
+
+
+
+
+    return {
+      message: "success"
+    }
+  }
+
 
   //admin
 
@@ -472,45 +536,70 @@ export class OrderService {
     // return this.getAllOrders()
   }
 
-  async updateOrderStateCod(orderId: string) {
-    const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
+  async updateOrderStatePending(orderId: string, state) {
 
-    const petPoojaOrderBody = {
-      user: await this.userModel.findOne({ _id: order.user }),
-      products: order.products,
-      cgst: order.cgst,
-      sgst: order.sgst,
-      discount: {
-        couponId: order.discount.couponId,
-        discount: order.discount.discount
-      },
-      itemsTotal: order.itemsTotal,
-      grandTotal: order.grandTotal,
-      deliveryFee: order.deliveryFee,
-      platformFee: 15,
-      orderPreference: order.orderPreference,
-      address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
+    if (state == 'cancelled') {
+      const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "cancelled", updatedAt: Date.now() }, { new: true }).exec();
 
-      payment: {
-        paymentMethod: order.payment.paymentMethod,
-        paymentId: order.payment.paymentId,
-        status: order.payment.status
-      },
-      preOrder: {
-        type: order.preOrder.type,
-        orderDate: order.preOrder.orderDate,
-        orderTime: order.preOrder.orderTime
-      },
-      createdAt: order.createdAt,
-      updatedAt: new Date()
-    };
+      // refund, if online paid
 
-    const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
 
-    await this.orderModel.findByIdAndUpdate(orderId, {
-      petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
-      updatedAt: Date.now()
-    }, { new: true }).exec();
+
+    }
+    else {
+
+
+
+
+      const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
+
+      const petPoojaOrderBody = {
+        user: await this.userModel.findOne({ _id: order.user }),
+        products: order.products,
+        cgst: order.cgst,
+        sgst: order.sgst,
+        discount: {
+          couponId: order.discount.couponId,
+          discount: order.discount.discount
+        },
+        itemsTotal: order.itemsTotal,
+        grandTotal: order.grandTotal,
+        deliveryFee: order.deliveryFee,
+        platformFee: 15,
+        orderPreference: order.orderPreference,
+        address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
+
+        payment: {
+          paymentMethod: order.payment.paymentMethod,
+          paymentId: order.payment.paymentId,
+          status: order.payment.status
+        },
+        preOrder: {
+          type: order.preOrder.type,
+          orderDate: order.preOrder.orderDate,
+          orderTime: order.preOrder.orderTime
+        },
+        createdAt: order.createdAt,
+        updatedAt: new Date()
+      };
+
+      const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
+
+      await this.orderModel.findByIdAndUpdate(orderId, {
+        petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+        updatedAt: Date.now()
+      }, { new: true }).exec();
+    }
+
+    const order = await this.orderModel.findOne({ _id: orderId });
+
+    let orderType = order.preOrder?.type;
+
+
+    return await this.getAdminOrdersByState("Pending", orderType)
+
+
+
     // const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
 
     // //petpooja

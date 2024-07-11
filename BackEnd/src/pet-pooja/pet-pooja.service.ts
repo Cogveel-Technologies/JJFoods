@@ -302,7 +302,7 @@ export class PetPoojaService {
     const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
 
     const data = this.mapOrderToApiPayload(body);
-    console.log("data", data)
+    // console.log("data", data)
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -639,7 +639,7 @@ export class PetPoojaService {
                 },
               ],
               order_type: order.orderPreference === 'delivery' ? 'D' : 'H',
-              ondc_bap: 'buyerAppName',
+              ondc_bap: 'JJFOODS',
               advanced_order: 'N',
               payment_type: order.payment?.paymentMethod === 'credit_card' ? 'Online' : 'COD',
               table_no: '',
@@ -652,7 +652,7 @@ export class PetPoojaService {
               created_on: new Date(order.createdAt).toISOString(),
               enable_delivery: order.orderPreference === 'delivery' ? 1 : 0,
               min_prep_time: 20,
-              callback_url: 'https.xyz.abc',
+              callback_url: this.configService.get<string>('WEBHOOKURL'),
               collect_cash: getSafeValue(order.grandTotal, '0'),
               otp: '9876',
             },

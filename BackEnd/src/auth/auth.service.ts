@@ -356,6 +356,18 @@ export class AuthService {
     }
   }
 
+
+  async reservedSignup(body) {
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    delete body.password;
+
+    body["password"] = hashedPassword
+    // //console.log(body)
+    body.role = 'reservedAdmin';
+    await this.adminModel.create(body);
+    return "done"
+  }
+
   async superadminSignup(body) {
 
     // //console.log(body.password)
@@ -365,6 +377,7 @@ export class AuthService {
 
     body["password"] = hashedPassword
     // //console.log(body)
+    body.role = 'admin';
     await this.adminModel.create(body);
     return "done"
 

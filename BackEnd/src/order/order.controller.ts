@@ -6,6 +6,11 @@ import { AuthGuard } from '@nestjs/passport';
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
+  @Post('order-status')
+  async handOrderStatus(@Body() body) {
+    return await this.orderService.processOrderStatusUpdate(body)
+  }
+
   @Get('admin/orders/:state/:orderType')
   @UseGuards(AuthGuard('admin-jwt'))
   async getAdminOrdersByState(@Param('state') state, @Param('orderType') orderType) {
@@ -53,15 +58,17 @@ export class OrderController {
     // console.log(orderId, body)
     return this.orderService.updateOrderState(orderId, body.state);
   }
-  @Put('state/cod/:orderId')
-  @UseGuards(AuthGuard('user-jwt'))
-  async updateOrderStateCod(@Param('orderId') orderId: string) {
-    return this.orderService.updateOrderStateCod(orderId);
+  @Put('state/pending/:orderId')
+  @UseGuards(AuthGuard('admin-jwt'))
+  async updateOrderStatePending(@Param('orderId') orderId: string, @Body() body) {
+    // console.log(body)
+    return this.orderService.updateOrderStatePending(orderId, body.state);
   }
   // @Put('status/:orderId')
   // async updateOrderStatus(@Param('orderId') orderId: string, @Body('status') status: string) {
   //   return this.orderService.updateOrderStatus(orderId, status);
   // }
+
 
   @Post('user')
   @UseGuards(AuthGuard('user-jwt'))
