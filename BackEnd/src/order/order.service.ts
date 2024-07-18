@@ -103,6 +103,39 @@ export class OrderService {
         await this.razorpayService.refund(order._id);
       }
 
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Find the most recent discrepancy document (or today's document if it exists)
+      let discrepancy = await this.discrepancyModel.findOne({
+        createdAt: { $gte: today },
+      }).exec();
+
+      if (!discrepancy) {
+        discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+      }
+
+      if (!discrepancy) {
+        throw new Error('No stock information available');
+      }
+
+      // Iterate over the products in the order and update the used field
+      for (let i = 0; i < order.products.length; i++) {
+        const product = order.products[i];
+        const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+
+        if (stockItem) {
+          stockItem.used -= product.quantity;
+          if (stockItem.used < 0) {
+            stockItem.used = 0; // Ensure used doesn't go below 0
+          }
+        }
+      }
+
+      // Mark the stockItems array as modified and save the discrepancy document
+      discrepancy.markModified('stockItems');
+      await discrepancy.save();
+
     }
 
 
@@ -598,6 +631,39 @@ export class OrderService {
       await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
 
     }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the most recent discrepancy document (or today's document if it exists)
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+    }
+
+    if (!discrepancy) {
+      throw new Error('No stock information available');
+    }
+
+    // Iterate over the products in the order and update the used field
+    for (let i = 0; i < order.products.length; i++) {
+      const product = order.products[i];
+      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+
+      if (stockItem) {
+        stockItem.used -= product.quantity;
+        if (stockItem.used < 0) {
+          stockItem.used = 0; // Ensure used doesn't go below 0
+        }
+      }
+    }
+
+    // Mark the stockItems array as modified and save the discrepancy document
+    discrepancy.markModified('stockItems');
+    await discrepancy.save();
+
 
 
 
@@ -646,6 +712,39 @@ export class OrderService {
         await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
 
       }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Find the most recent discrepancy document (or today's document if it exists)
+      let discrepancy = await this.discrepancyModel.findOne({
+        createdAt: { $gte: today },
+      }).exec();
+
+      if (!discrepancy) {
+        discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+      }
+
+      if (!discrepancy) {
+        throw new Error('No stock information available');
+      }
+
+      // Iterate over the products in the order and update the used field
+      for (let i = 0; i < order.products.length; i++) {
+        const product = order.products[i];
+        const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+
+        if (stockItem) {
+          stockItem.used -= product.quantity;
+          if (stockItem.used < 0) {
+            stockItem.used = 0; // Ensure used doesn't go below 0
+          }
+        }
+      }
+
+      // Mark the stockItems array as modified and save the discrepancy document
+      discrepancy.markModified('stockItems');
+      await discrepancy.save();
+
 
 
 
