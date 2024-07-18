@@ -1,4 +1,4 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Order } from './schemas/order.schema';
 import mongoose, { Connection, Model } from 'mongoose';
@@ -13,6 +13,8 @@ import { RazorpayService } from 'src/razorpay/razorpay.service';
 import { ConfigService } from '@nestjs/config';
 import { FeedbackService } from 'src/feedback/feedback.service';
 import { Used } from 'src/coupon/schemas/used.schema';
+import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
+
 const { ObjectId } = require('mongodb');
 
 @Injectable()
@@ -30,7 +32,9 @@ export class OrderService {
     private configService: ConfigService,
     @InjectConnection() private connection: Connection,
     @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService,
-    @InjectModel(Used.name) private readonly usedModel: Model<Used>
+    @InjectModel(Used.name) private readonly usedModel: Model<Used>,
+    @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>
+
   ) { }
   async processOrderStatusUpdate(data: any) {
     const {
@@ -87,6 +91,19 @@ export class OrderService {
     ).exec();
 
     // Check if cancelled, then refund
+    if (state == 'cancelled') {
+      const order = await this.orderModel.findOne({ 'petPooja.orderId': orderID });
+
+      if (order?.discount?.couponId) {
+        await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+
+      }
+
+      if (order.payment.paymentMethod == 'online' && order.payment.status == true) {
+        await this.razorpayService.refund(order._id);
+      }
+
+    }
 
 
 
@@ -357,7 +374,7 @@ export class OrderService {
 
       discount = userCart.discount
     }
-    console.log("discount--------------------", discount)
+    // console.log("discount--------------------", discount)
 
 
     const data = {
@@ -367,17 +384,67 @@ export class OrderService {
 
 
 
-    const userCart = await this.cartService.getUserCart(userId, data)
+    const userCart = await this.cartService.getUserCart(userId, data);
+
+    /// inventory
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+    }
+
+    if (!discrepancy) {
+      throw new Error('No stock information available');
+    }
 
 
-    const products = userCart?.newData?.map((item) => {
+
+
+
+
+    // const products = userCart?.newData?.map((item) => {
+
+    //   // const stock = await this.stockModel.findOne({ itemId: item.itemid });
+    //   // if (stock) {
+    //   //   stock.used = stock.used - item['quantity'];
+    //   //  await  stock.save()
+    //   // }
+
+
+
+
+
+    //   return {
+    //     itemId: item['itemid'],
+    //     quantity: item['quantity'],
+    //     price: item['price']
+    //   }
+    // })
+    const products = await Promise.all(userCart?.newData?.map(async (item) => {
+      // const stock = await this.stockModel.findOne({ itemId: item.itemid });
+      // if (stock) {
+      //   stock.used = stock.used - item['quantity'];
+      //   await stock.save();
+      // }
+      const stock = discrepancy.stockItems.find(stockItem => stockItem.itemId === item['itemid']);
+
+      if (stock) {
+        stock.used += item['quantity'];
+      }
 
       return {
         itemId: item['itemid'],
         quantity: item['quantity'],
         price: item['price']
-      }
-    })
+      };
+    }));
+    discrepancy.markModified('stockItems');
+    await discrepancy.save()
     let order: any;
 
 
@@ -478,6 +545,7 @@ export class OrderService {
       }
 
       const razorpay = await this.razorpayService.payment(razorpayBody);
+      console.log("create order razorpay", razorpay)
 
       order.payment.orderId = razorpay.id;
       await order.save()
@@ -511,7 +579,35 @@ export class OrderService {
   async getAllOrders() {
     return await this.orderModel.find()
   }
+  async updateOrderStateCancelled(orderId) {
+    //cancel only when state is pending
+    const order = await this.orderModel.findById(orderId);
+    if (order.state != 'pending') {
 
+      throw new HttpException('Order cannot be cancelled', HttpStatus.BAD_REQUEST)
+    }
+
+    await this.orderModel.findByIdAndUpdate(orderId, { state: "cancelled", updatedAt: Date.now() }, { new: true }).exec();
+
+
+    //if online paymentd done, refund
+    if (order?.payment?.paymentMethod == 'online' && order.payment.status == true) {
+      await this.razorpayService.refund(orderId);
+    }
+    if (order?.discount?.couponId) {
+      await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+
+    }
+
+
+
+    return {
+      message: "success"
+    }
+
+
+
+  }
 
   async updateOrderState(orderId: string, newState) {
     const order = await this.orderModel.findOne({ _id: orderId });
@@ -542,6 +638,15 @@ export class OrderService {
       const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "cancelled", updatedAt: Date.now() }, { new: true }).exec();
 
       // refund, if online paid
+      if (order?.payment?.paymentMethod == 'online' && order.payment.status == true) {
+        await this.razorpayService.refund(orderId);
+      }
+
+      if (order?.discount?.couponId) {
+        await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+
+      }
+
 
 
 
@@ -647,6 +752,7 @@ export class OrderService {
       for (const product of order.products) {
 
         const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+        console.log(item)
 
 
         if (item) {
@@ -657,14 +763,17 @@ export class OrderService {
         console.log(rating)
         if (rating) {
           product.details.rating = rating;
-        } else {
+        }
+        else {
           product.details.rating = 0
         }
+        // console.log(product)
+
 
 
       }
     }
-    console.log(orders)
+    // console.log(orders)
     return orders;
   }
 

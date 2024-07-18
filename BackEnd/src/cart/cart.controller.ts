@@ -29,8 +29,8 @@ export class CartController {
   @Get('/:userId')
   @UseGuards(AuthGuard('user-jwt'))
   async getUserCart(@Param('userId') userId, @Body() body) {
-    console.log("param", userId)
-    console.log(body)
+    // console.log("param", userId)
+    // console.log(body)
 
     const cart = await this.cartService.getUserCart(userId, body);
     // console.log("response", cart)

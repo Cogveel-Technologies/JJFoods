@@ -42,6 +42,12 @@ export class AuthController {
     return res;
   }
 
+  @Post('/reservedadminlogin')
+  reservedAdminLogin(@Body() body) {
+    const res = this.authService.reservedAdminLogin(body);
+    return res;
+  }
+
 
 
   @Put('/superAdmin/update')
@@ -73,7 +79,7 @@ export class AuthController {
   }
 
 
-  @Post('reservedadmin1')
+  @Post('reservedadmin')
   reservedSignup(@Body() body) {
     return this.authService.reservedSignup(body)
   }

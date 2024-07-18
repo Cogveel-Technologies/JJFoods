@@ -18,10 +18,13 @@ export class RazorpayService {
     @Inject(CartService) private readonly cartService: CartService) { }
 
   async payment(body) {
+    console.log("razorpay body", body)
     const razorpay = await new Razorpay({
       key_id: this.configService.get<string>('RAZORPAY_ID'),
       key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
     });
+
+    console.log("razorpay key object", razorpay)
 
 
 
@@ -30,11 +33,18 @@ export class RazorpayService {
     try {
 
       const amt = parseFloat(amount)
+      // console.log(amt, "0000000000000000000")
+      // console.log(parseFloat(amount) * 100, "111111111111111111")
+      console.log("before")
       const order = await razorpay.orders.create({
-        amount: parseFloat(amount) * 100,
+        amount: Math.round(parseFloat(amount) * 100),
+
         currency,
         receipt,
       });
+      console.log("after")
+
+      console.log("razorpay order create", order)
 
       //hashing 
       const saltOrRounds = 10;
@@ -235,5 +245,71 @@ export class RazorpayService {
     })
 
     return await instance.orders.fetch(body.orderId)
+  }
+
+  async refund(orderId) {
+    const order = await this.orderModel.findById(orderId);
+    var instance = new Razorpay({
+      key_id: this.configService.get<string>('RAZORPAY_ID'),
+      key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
+    })
+    const paymentId = order.payment.paymentId;
+
+    const refundResponse = await instance.payments.refund(paymentId, {
+      "amount": Math.round(order.grandTotal * 100),
+      "speed": "optimum",
+      "receipt": "refund"
+    })
+
+    order.payment.refund = true;
+    order.payment.refundId = refundResponse.id
+    order.payment.refundDate = refundResponse.created_at;
+    await order.save()
+    // const url = 'https://api.razorpay.com/v1/payments/' + paymentId + '/refund';
+    // const data = {
+    //   "amount": order.grandTotal,
+    //   "receipt": "refund",
+    //   "notes": {
+    //     "notes_key_1": "order refund",
+    //     "notes_key_2": "instant refund"
+    //   }
+    // };
+
+
+
+
+
+    // // Make the fetch request
+    // const response = await fetch(url, {
+    //   method: 'POST',
+
+    //   body: JSON.stringify(data),
+    // });
+
+
+
+    // if (response.ok) {
+
+    //   const responseData = await response.json();
+    //   order.payment.refund = true;
+    //   await order.save()
+    //   return responseData;
+    // } else {
+    //   // Handle errors
+    //   throw new Error('Error making fetch request');
+    // }
+
+  }
+
+  async fbpi(id) {
+    var instance = new Razorpay({
+      key_id: this.configService.get<string>('RAZORPAY_ID'),
+      key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
+    })
+
+    const razorpayResponse = await instance.payments.fetch(id)
+    console.log("razorpay response", razorpayResponse)
+    return razorpayResponse
+
   }
 }

@@ -21,12 +21,14 @@ import { JwtAdminStrategy } from './jwtAdmin.strategy';
 import { UserJwtGuard } from './guards/user-jwt.guard';
 import { AdminJwtGuard } from './guards/admin-jwt.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
 
 
 
 
 @Module({
   imports: [NotificationModule,
+    forwardRef(() => PetPoojaModule),
     PassportModule.register({
       defaultStrategy: 'jwt'
     }),

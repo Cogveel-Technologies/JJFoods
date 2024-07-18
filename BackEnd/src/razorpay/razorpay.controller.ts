@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { RazorpayService } from './razorpay.service';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -32,4 +32,17 @@ export class RazorpayController {
 
     return this.razorpayService.fetchOrderById(body)
   }
+
+  @Post('/refund/:orderId')
+  async refund(@Param('orderId') orderId) {
+    return this.razorpayService.refund(orderId)
+  }
+
+  @Get('/fbpi/:id')
+  async fbpi(@Param('id') id) {
+    return this.razorpayService.fbpi(id)
+
+  }
+
+
 }

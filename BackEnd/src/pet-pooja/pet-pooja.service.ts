@@ -12,6 +12,8 @@ import * as dotenv from 'dotenv';
 import { Admin } from 'src/auth/schemas/admin.schema';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
+import { Discrepancy, StockItem } from './schemas/stock.schema';
+
 const getCronInterval = () => {
 
   dotenv.config();
@@ -26,7 +28,79 @@ export class PetPoojaService {
   constructor(@InjectConnection() private readonly connection: Connection, @InjectModel(Wishlist.name) private wishlistModel: Model<Wishlist>, @InjectModel(Feedback.name) private feedbackModel: Model<Feedback>, @Inject(forwardRef(() => FeedbackService)) private readonly feedbackService: FeedbackService, @Inject(forwardRef(() => WishlistService)) private readonly wishlistService: WishlistService,
     private configService: ConfigService,
     @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
-    @InjectModel(RestaurantDetails.name) private readonly restaurantModel: Model<RestaurantDetails>) { }
+    @InjectModel(RestaurantDetails.name) private readonly restaurantModel: Model<RestaurantDetails>,
+    @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
+    @InjectModel(StockItem.name) private stockModel: Model<StockItem>
+
+
+  ) { }
+
+  async addStock(bulkStockItemDto) {
+    const results = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find or create today's discrepancy document
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = new this.discrepancyModel();
+    }
+
+    for (let i = 0; i < bulkStockItemDto.stockItems.length; i++) {
+      const stockItemDto = bulkStockItemDto.stockItems[i];
+      let existingStock = discrepancy.stockItems.find(item => item.itemId === stockItemDto.itemId);
+
+      if (existingStock) {
+        existingStock.quantity += stockItemDto.quantity;
+        existingStock.actualQuantity = stockItemDto.actualQuantity || existingStock.actualQuantity;
+        existingStock.discrepancy = - existingStock.actualQuantity + existingStock.quantity - existingStock.used;
+      } else {
+        const createdStock = new this.stockModel(stockItemDto);
+        // createdStock.discrepancy = createdStock.actualQuantity - createdStock.quantity + createdStock.used;
+        createdStock.actualQuantity = createdStock.quantity;
+        discrepancy.stockItems.push(createdStock);
+        results.push(createdStock);
+      }
+    }
+
+    discrepancy.markModified('stockItems'); // Explicitly mark stockItems as modified
+    await discrepancy.save(); // Save the updated discrepancy document to persist changes
+
+    return discrepancy.stockItems;
+
+
+  }
+
+  async getStock() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+    }
+
+    if (!discrepancy) {
+      const { items } = await this.menu()
+      return items;
+    }
+    return discrepancy.stockItems;
+
+
+
+
+
+
+  }
+
+
+
 
   async searchItems(query: string) {
 
