@@ -11,7 +11,7 @@ export class PetPoojaController {
   /// stock
   @Post('addStock')
   addStock(@Body() body) {
-
+    console.log(body)
     return this.petPoojaService.addStock(body)
 
   }
