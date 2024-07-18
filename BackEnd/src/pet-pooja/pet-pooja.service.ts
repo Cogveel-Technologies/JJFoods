@@ -88,7 +88,14 @@ export class PetPoojaService {
 
     if (!discrepancy) {
       const { items } = await this.menu()
-      return items;
+      const res = items.map(item => {
+        return {
+          name: item.itemname,
+          itemid: item.itemid,
+          quantity: 0
+        };
+      });
+      return res
     }
     return discrepancy.stockItems;
 
