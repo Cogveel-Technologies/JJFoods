@@ -49,8 +49,8 @@ export class PetPoojaService {
       discrepancy = new this.discrepancyModel();
     }
 
-    for (let i = 0; i < bulkStockItemDto.items.length; i++) {
-      const stockItemDto = bulkStockItemDto.items[i];
+    for (let i = 0; i < bulkStockItemDto.length; i++) {
+      const stockItemDto = bulkStockItemDto[i];
       let existingStock = discrepancy.stockItems.find(item => item.itemId === stockItemDto.itemId);
 
       if (existingStock) {
