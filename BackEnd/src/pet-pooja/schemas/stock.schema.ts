@@ -22,6 +22,9 @@ export class StockItem {
   @Prop()
   actualQuantity: number;
 
+  @Prop()
+  name: string;
+
 
 
 
