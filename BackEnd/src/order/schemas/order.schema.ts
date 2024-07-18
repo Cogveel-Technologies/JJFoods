@@ -72,7 +72,10 @@ export class Order {
       status: { type: Boolean },
       orderId: { type: String },
       signature: { type: String },
-      reason: { type: String }
+      reason: { type: String },
+      refund: { type: Boolean },
+      refundId: { type: String },
+      refundDate: { type: String }
     }
 
 
@@ -84,6 +87,9 @@ export class Order {
     status: boolean;
     signature: string;
     reason: string;
+    refund?: boolean;
+    refundId?: string;
+    refundDate?: string;
 
   };
   @Prop({

@@ -7,6 +7,20 @@ import { SkipThrottle, Throttle } from '@nestjs/throttler';
 export class PetPoojaController {
 
   constructor(private readonly petPoojaService: PetPoojaService) { }
+
+  /// stock
+  @Post('addStock')
+  addStock(@Body() body) {
+    return this.petPoojaService.addStock(body)
+
+  }
+
+  @Get('getStock')
+  getStock(): any {
+    return this.petPoojaService.getStock()
+
+  }
+
   @Get('menu')
   fetchMenu(): any {
     // console.log("request")

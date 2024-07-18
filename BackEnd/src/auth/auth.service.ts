@@ -21,6 +21,7 @@ import { RestaurantDetails } from './schemas/restaurant.schema';
 import { NotificationService } from 'src/notification/notification.service';
 import { AdminLoginDto } from './dtos/adminLogin.dto';
 import { SignupOtpDto } from './dtos/signupOtp.dto';
+import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
@@ -38,7 +39,9 @@ export class AuthService {
     private jwtService: JwtService,
     @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>,
     @Inject(NotificationService)
-    private readonly notificationService: NotificationService) {
+    private readonly notificationService: NotificationService,
+    @Inject(PetPoojaService)
+    private readonly petPoojaService: PetPoojaService) {
 
   }
   bucket = admin.storage().bucket();
@@ -212,7 +215,8 @@ export class AuthService {
         _id: admin._id,
         emailId: admin.emailId,
         name: admin.name,
-        phoneNumber: admin.phoneNumber
+        phoneNumber: admin.phoneNumber,
+        role: admin.role
       };
 
       return { token, adminDetails };
@@ -230,6 +234,45 @@ export class AuthService {
     }
   }
 
+  async reservedAdminLogin(body): Promise<object> {
+    try {
+      const admin = await this.adminModel.findOne({ emailId: body.emailId });
+      if (!admin) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const isPasswordMatch = await bcrypt.compare(body.password, admin.password);
+      if (!isPasswordMatch) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      const token = this.jwtService.sign({ id: admin._id });
+
+      const adminDetails = {
+        _id: admin._id,
+        emailId: admin.emailId,
+        name: admin.name,
+        phoneNumber: admin.phoneNumber,
+        role: admin.role
+      };
+      const { items } = await this.petPoojaService.menu()
+
+
+
+      return { token, adminDetails, items };
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error during super admin login:', error);
+
+      // Handle known exceptions
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      // Throw a generic internal server error for other cases
+      throw new HttpException('Internal server error', 500);
+    }
+  }
   async superAdminUpdate(updateProfileDto: any, file: Express.Multer.File) {
     try {
 
@@ -377,7 +420,7 @@ export class AuthService {
 
     body["password"] = hashedPassword
     // //console.log(body)
-    body.role = 'admin';
+    body.role = 'superAdmin';
     await this.adminModel.create(body);
     return "done"
 

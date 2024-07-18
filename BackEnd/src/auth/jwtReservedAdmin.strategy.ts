@@ -9,7 +9,7 @@ import { Admin } from "./schemas/admin.schema";
 
 
 @Injectable()
-export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
+export class JwtAdminStrategy extends PassportStrategy(Strategy, 'reserved-admin-jwt') {
   constructor(
     @InjectModel(Admin.name)
     private adminModel: Model<Admin>
@@ -24,11 +24,11 @@ export class JwtAdminStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   async validate(payload: any) {
     const { id } = payload;
     const admin = await this.adminModel.findById(id);
-
-    if (!admin) {
+    if (admin.role != 'reservedAdmin') {
       throw new UnauthorizedException('Not authorized')
     }
-    if (admin.role != 'superAdmin') {
+
+    if (!admin) {
       throw new UnauthorizedException('Not authorized')
     }
     return admin;

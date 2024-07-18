@@ -35,7 +35,7 @@ export class Admin {
   @Prop()
   deviceToken: string;
 
-  @Prop()
+  @Prop({ default: 'user', enum: ['superAdmin', 'reservedAdmin'] })
   role: string;
 
   // @Prop()

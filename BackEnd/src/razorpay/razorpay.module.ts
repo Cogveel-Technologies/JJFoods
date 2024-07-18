@@ -12,9 +12,12 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, AuthModule],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, forwardRef(() => AuthModule)],
   providers: [RazorpayService],
   controllers: [RazorpayController],
   exports: [RazorpayService]
 })
 export class RazorpayModule { }
+
+
+

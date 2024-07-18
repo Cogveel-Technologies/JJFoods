@@ -48,7 +48,7 @@ export class OrderController {
   @Post('/createOrder')
   @UseGuards(AuthGuard('user-jwt'))
   async createOrder(@Body() body) {
-    // console.log("order body:---------------------------", body)
+    console.log("order body:---------------------------", body)
     return this.orderService.createOrder(body);
   }
 
@@ -68,13 +68,22 @@ export class OrderController {
   // async updateOrderStatus(@Param('orderId') orderId: string, @Body('status') status: string) {
   //   return this.orderService.updateOrderStatus(orderId, status);
   // }
+  @Put('state/cancelled/:orderId')
+  @UseGuards(AuthGuard('user-jwt'))
+  async updateOrderStateCancelled(@Param('orderId') orderId: string) {
+    // console.log(body)
+    return this.orderService.updateOrderStateCancelled(orderId);
+  }
 
 
   @Post('user')
   @UseGuards(AuthGuard('user-jwt'))
   async getOrdersByCustomerId(@Body() body) {
     //completed or processing
-    return this.orderService.getOrdersByCustomerId(body.userId, body.state);
+    // console.log(body)
+    const res = await this.orderService.getOrdersByCustomerId(body.userId, body.state);
+    // console.log(res)
+    return res
   }
 
   @Post('/user/order')
