@@ -9,15 +9,31 @@ export class PetPoojaController {
   constructor(private readonly petPoojaService: PetPoojaService) { }
 
   /// stock
-  @Post('addStock')
-  addStock(@Body() body) {
+  // @Post('addStock')
+  // addStock(@Body() body) {
+  //   console.log(body)
+  //   return this.petPoojaService.addStock(body)
+
+  // }
+
+  @Post('reservedadminquantitya')
+  async reservedAdminQuantityA(@Body() body) {
+    console.log("called a");
     console.log(body)
-    return this.petPoojaService.addStock(body)
+    return this.petPoojaService.reservedAdminQuantityA(body)
+
+  }
+  @Post('reservedadminquantityb')
+  async reservedAdminQuantityB(@Body() body) {
+    console.log("called b")
+    console.log(body)
+    return this.petPoojaService.reservedAdminQuantityB(body)
 
   }
 
   @Get('getStock')
   getStock(): any {
+    console.log("called")
     return this.petPoojaService.getStock()
 
   }

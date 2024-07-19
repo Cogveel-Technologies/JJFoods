@@ -400,13 +400,23 @@ export class AuthService {
   }
 
 
-  async reservedSignup(body) {
+  async reservedASignup(body) {
     const hashedPassword = await bcrypt.hash(body.password, 10);
     delete body.password;
 
     body["password"] = hashedPassword
     // //console.log(body)
-    body.role = 'reservedAdmin';
+    body.role = 'reservedAdminA';
+    await this.adminModel.create(body);
+    return "done"
+  }
+  async reservedBSignup(body) {
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    delete body.password;
+
+    body["password"] = hashedPassword
+    // //console.log(body)
+    body.role = 'reservedAdminB';
     await this.adminModel.create(body);
     return "done"
   }

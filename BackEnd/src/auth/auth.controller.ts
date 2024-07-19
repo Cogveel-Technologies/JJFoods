@@ -79,9 +79,13 @@ export class AuthController {
   }
 
 
-  @Post('reservedadmin')
-  reservedSignup(@Body() body) {
-    return this.authService.reservedSignup(body)
+  @Post('reservedadminA')
+  reservedSignupA(@Body() body) {
+    return this.authService.reservedASignup(body)
+  }
+  @Post('reservedadminB')
+  reservedSignupB(@Body() body) {
+    return this.authService.reservedBSignup(body)
   }
 
   // @Post('/admin/signup')
