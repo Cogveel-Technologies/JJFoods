@@ -46,7 +46,22 @@ export class PetPoojaService {
     }).exec();
 
     if (!discrepancy) {
+      const { items } = await this.menu()
+      const res = items.slice(0, 5).map((item) => {
+
+        return {
+          name: item.itemname,
+          itemId: item.itemid,
+          quantity: 0,
+          used: 0,
+          actualQuantity: 0,
+          discrepancy: 0
+        };
+      });
+
       discrepancy = new this.discrepancyModel();
+      discrepancy['stockItems'] = res;
+
     }
 
     for (let i = 0; i < bulkStockItemDto.length; i++) {
@@ -74,6 +89,113 @@ export class PetPoojaService {
 
   }
 
+  async reservedAdminQuantityA(body) {
+    let results = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find or create today's discrepancy document
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      const { items } = await this.menu()
+      const res = items.slice(0, 5).map((item) => {
+
+        return {
+          name: item.itemname,
+          itemId: item.itemid,
+          quantity: 0,
+          used: 0,
+          actualQuantity: 0,
+          discrepancy: 0
+        };
+      });
+
+      discrepancy = new this.discrepancyModel();
+      discrepancy['stockItems'] = res;
+
+    }
+    for (let i = 0; i < body.length; i++) {
+      const stockItemDto = body[i];
+      let existingStock = discrepancy.stockItems.find(item => item.itemId === stockItemDto.itemId);
+
+      if (existingStock) {
+        existingStock.quantity = stockItemDto.quantity;
+        //  let  value=  existingStock.actualQuantity==0?stockItemDto.quantity:existingStock.actualQuantity+stockItemDto.quantity ;
+        existingStock.actualQuantity = stockItemDto.quantity;
+        existingStock.discrepancy = 0;
+      }
+      // } else {
+      //   const createdStock = new this.stockModel(stockItemDto);
+      //   // createdStock.discrepancy = createdStock.actualQuantity - createdStock.quantity + createdStock.used;
+      //   createdStock.actualQuantity = createdStock.quantity;
+      //   discrepancy.stockItems.push(createdStock);
+      //   results.push(createdStock);
+      // }
+    }
+
+    discrepancy.markModified('stockItems'); // Explicitly mark stockItems as modified
+    await discrepancy.save(); // Save the updated discrepancy document to persist changes
+
+    return discrepancy.stockItems;
+
+  }
+  async reservedAdminQuantityB(body) {
+    let results = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find or create today's discrepancy document
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      const { items } = await this.menu()
+      const res = items.slice(0, 5).map((item) => {
+
+        return {
+          name: item.itemname,
+          itemId: item.itemid,
+          quantity: 0,
+          used: 0,
+          actualQuantity: 0,
+          discrepancy: 0,
+
+        };
+      });
+
+      discrepancy = new this.discrepancyModel();
+      discrepancy['stockItems'] = res;
+
+    }
+    for (let i = 0; i < body.length; i++) {
+      const stockItemDto = body[i];
+      let existingStock = discrepancy.stockItems.find(item => item.itemId === stockItemDto.itemId);
+
+      if (existingStock) {
+
+        existingStock.actualQuantity = stockItemDto.actualQuantity;
+        existingStock.discrepancy = existingStock.quantity - stockItemDto.actualQuantity - existingStock.used;
+      }
+      // } else {
+      //   const createdStock = new this.stockModel(stockItemDto);
+      //   // createdStock.discrepancy = createdStock.actualQuantity - createdStock.quantity + createdStock.used;
+      //   createdStock.actualQuantity = createdStock.quantity;
+      //   discrepancy.stockItems.push(createdStock);
+      //   results.push(createdStock);
+      // }
+    }
+
+    discrepancy.markModified('stockItems'); // Explicitly mark stockItems as modified
+    await discrepancy.save(); // Save the updated discrepancy document to persist changes
+
+    return discrepancy.stockItems;
+
+  }
+
   async getStock() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -88,11 +210,15 @@ export class PetPoojaService {
 
     if (!discrepancy) {
       const { items } = await this.menu()
-      const res = items.map(item => {
+      const res = items.slice(0, 5).map((item) => {
+
         return {
           name: item.itemname,
           itemId: item.itemid,
-          quantity: 0
+          quantity: 0,
+          used: 0,
+          actualQuantity: 0,
+          discrepancy: 0
         };
       });
       return res

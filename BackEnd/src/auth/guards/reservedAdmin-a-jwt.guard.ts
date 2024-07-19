@@ -2,7 +2,7 @@ import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/com
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class AdminJwtGuard extends AuthGuard('reserved-admin-jwt') {
+export class AdminJwtGuardA extends AuthGuard('reserved-admin-a-jwt') {
   handleRequest(err, user, info, context: ExecutionContext) {
     if (err || !user) {
       throw err || new UnauthorizedException('Not authorized as admin');

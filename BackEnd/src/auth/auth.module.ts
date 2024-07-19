@@ -22,6 +22,10 @@ import { UserJwtGuard } from './guards/user-jwt.guard';
 import { AdminJwtGuard } from './guards/admin-jwt.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
+import { AdminJwtGuardA } from './guards/reservedAdmin-a-jwt.guard';
+import { AdminJwtGuardB } from './guards/reservedAdmin-b-jwt.guard';
+import { JwtAdminStrategyA } from './jwtReservedAdminA.strategy';
+import { JwtAdminStrategyB } from './jwtReservedAdminB.strategy';
 
 
 
@@ -69,8 +73,8 @@ import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
     }),
     forwardRef(() => CartModule)
   ],
-  providers: [AuthService, JwtStrategy, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard],
+  providers: [AuthService, JwtStrategy, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard, AdminJwtGuardA, AdminJwtGuardB, JwtAdminStrategyA, JwtAdminStrategyB],
   controllers: [AuthController],
-  exports: [JwtStrategy, PassportModule, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard]
+  exports: [JwtStrategy, PassportModule, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard, AdminJwtGuardB, AdminJwtGuardA, JwtAdminStrategyA, JwtAdminStrategyB]
 })
 export class AuthModule { }
