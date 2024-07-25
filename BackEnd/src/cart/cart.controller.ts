@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AddQuantityDto } from './dtos/addQuantity.dto';
+import { AddCartDto } from './dtos/addCart.dto';
 
 @Controller('cart')
 export class CartController {
@@ -15,7 +17,7 @@ export class CartController {
   }
   @Post('add')
   @UseGuards(AuthGuard('user-jwt'))
-  async addCart(@Body() body: any) {
+  async addCart(@Body() body: AddCartDto) {
     // console.log("request", body)
 
 
@@ -28,7 +30,7 @@ export class CartController {
   }
   @Get('/:userId')
   @UseGuards(AuthGuard('user-jwt'))
-  async getUserCart(@Param('userId') userId, @Body() body) {
+  async getUserCart(@Param('userId') userId, @Body() body: {}) {
     // console.log("param", userId)
     // console.log(body)
 
@@ -47,7 +49,7 @@ export class CartController {
   @Post('removeItem')
   @UseGuards(AuthGuard('user-jwt'))
   async removeCartItem(@Body() body: any) {
-
+    // console.log(body)
     const cart = await this.cartService.removeCartItem(body);
     return cart;
   }
@@ -60,7 +62,8 @@ export class CartController {
 
   @Put('addQuantity')
   @UseGuards(AuthGuard('user-jwt'))
-  async addQuantity(@Body() body: any) {
+  async addQuantity(@Body() body: AddQuantityDto) {
+    // console.log(body)
 
 
     const cart = await this.cartService.addQuantity(body);
@@ -70,7 +73,7 @@ export class CartController {
 
   @Put('decreaseQuantity')
   @UseGuards(AuthGuard('user-jwt'))
-  async decreaseQuantity(@Body() body: any) {
+  async decreaseQuantity(@Body() body: AddQuantityDto) {
     // console.log("request", body)
 
     const cart = await this.cartService.decreaseQuantity(body);

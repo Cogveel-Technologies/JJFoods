@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { AuthGuard } from '@nestjs/passport';
+import { WishlistDto } from './dtos/wishlist.dto';
+import { WishlistToCartDto } from './dtos/wishlistToCart.dto';
 
 @Controller('wishlist')
 export class WishlistController {
@@ -8,7 +10,7 @@ export class WishlistController {
 
   @Post('add')
   @UseGuards(AuthGuard('user-jwt'))
-  addItem(@Body() body) {
+  addItem(@Body() body: WishlistDto) {
     // console.log(body)
 
     return this.wishlistService.addItem(body)
@@ -22,7 +24,8 @@ export class WishlistController {
 
   @Post('remove')
   @UseGuards(AuthGuard('user-jwt'))
-  removeItem(@Body() body) {
+  removeItem(@Body() body: WishlistDto) {
+    // console.log(body)
 
     return this.wishlistService.removeItem(body)
   }
@@ -35,8 +38,8 @@ export class WishlistController {
   }
   @Post('addToCart')
   @UseGuards(AuthGuard('user-jwt'))
-  async addToCart(@Body() body) {
-    // console.log("add to cart from wishlist")
+  async addToCart(@Body() body: WishlistToCartDto) {
+    // console.log(body)
 
     const response = await this.wishlistService.addToCart(body)
     // console.log(response)

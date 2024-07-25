@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { AuthGuard } from '@nestjs/passport';
+import { ApplyCouponDto } from './dtos/applyCoupon.dto';
 
 @Controller('coupon')
 export class CouponController {
@@ -14,7 +15,7 @@ export class CouponController {
 
   @Post('/apply')
   @UseGuards(AuthGuard('user-jwt'))
-  async applyPromotionalCode(@Body() body) {
+  async applyPromotionalCode(@Body() body: ApplyCouponDto) {
     try {
       // console.log("apply coupon", body)
       const updatedPromotionalCode = await this.couponService.decreaseUsage(body);

@@ -1,6 +1,8 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { FeedbackService } from './feedback.service';
 import { AuthGuard } from '@nestjs/passport';
+import { ItemRatingDto } from './dtos/itemRating.dto';
+import { ReviewDto } from './dtos/review.dto';
 
 @Controller('feedback')
 export class FeedbackController {
@@ -11,7 +13,7 @@ export class FeedbackController {
 
   @Post('/orderItemRating')
   @UseGuards(AuthGuard('user-jwt'))
-  async createOrderItemRating(@Body() body) {
+  async createOrderItemRating(@Body() body: ItemRatingDto) {
     // console.log("feedback create", body)
 
     return this.feedbackService.createOrderItemRating(body)
@@ -20,6 +22,7 @@ export class FeedbackController {
   @Post('/getOrderItemRating')
   @UseGuards(AuthGuard('user-jwt'))
   async getOrderItemRating(@Body() body) {
+    // console.log(body)
 
     return this.feedbackService.getOrderItemRating(body)
   }
@@ -33,6 +36,7 @@ export class FeedbackController {
   @Post()
   @UseGuards(AuthGuard('user-jwt'))
   createRating(@Body() body) {
+    // console.log(body)
 
     return this.feedbackService.createOrUpdateRating(body)
 
@@ -40,7 +44,8 @@ export class FeedbackController {
   }
   @Post('/review')
   @UseGuards(AuthGuard('user-jwt'))
-  async addReview(@Body() body) {
+  async addReview(@Body() body: ReviewDto) {
+    // console.log(body)
 
     const review = await this.feedbackService.addReview(body);
     return review

@@ -24,6 +24,11 @@ import { UpdateProfileDto } from './dtos/updateProfile.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminLoginDto } from './dtos/adminLogin.dto';
+import { CheckDto } from './dtos/check.dto';
+import { UserDeleteDto } from './dtos/userDelete.dto';
+import { AddressDto } from './dtos/address.dto';
+import { UpdateAddressDto } from './dtos/updateAddress.dto';
+import { DeleteAddressDto } from './dtos/deleteAddress.dto';
 
 
 @Controller('auth')
@@ -43,7 +48,7 @@ export class AuthController {
   }
 
   @Post('/reservedadminlogin')
-  reservedAdminLogin(@Body() body) {
+  reservedAdminLogin(@Body() body: AdminLoginDto) {
     const res = this.authService.reservedAdminLogin(body);
     return res;
   }
@@ -55,7 +60,7 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('file'))
   superAdminUpdate(@Body() updateProfileDto,
     @UploadedFile() file: Express.Multer.File,) {
-    // console.log("update called");
+    // console.log(updateProfileDto, file);
     return this.authService.superAdminUpdate(updateProfileDto, file);
 
   }
@@ -103,7 +108,7 @@ export class AuthController {
   //   return this.authService.adminLogin(body)
   // }
   @Post('/check')
-  check(@Body() body: any) {
+  check(@Body() body: CheckDto) {
     return this.authService.check(body);
   }
 
@@ -116,8 +121,8 @@ export class AuthController {
   }
 
   @Post('/signup')
-  signUp(@Body() signupDto) {
-    // console.log(signupDto)
+  signUp(@Body() signupDto: SignupDto) {
+    console.log(signupDto)
     const res = this.authService.signUp(signupDto);
     // console.log(res)
     return res;
@@ -159,20 +164,23 @@ export class AuthController {
 
   @Delete('/delete')
   @UseGuards(AuthGuard('user-jwt'))
-  deleteProfile(@Body() body: any) {
+  deleteProfile(@Body() body: UserDeleteDto) {
+    // console.log(body)
     return this.authService.deleteProfile(body);
   }
 
   // Address management
   @Post('/addAddress')
   @UseGuards(AuthGuard('user-jwt'))
-  addAddress(@Body() addressDto: any) {
+  addAddress(@Body() addressDto: AddressDto) {
+    // console.log(addressDto)
     return this.authService.addAddress(addressDto);
   }
 
   @Get('/getAddresses/:id')
   @UseGuards(AuthGuard('user-jwt'))
   getAddresses(@Param('id') id: string) {
+    // console.log("called")
     return this.authService.getAddresses(id);
   }
 
@@ -184,13 +192,14 @@ export class AuthController {
 
   @Put('/updateAddress/:id')
   @UseGuards(AuthGuard('user-jwt'))
-  updateAddress(@Body() updateAddressDto: any, @Param('id') id: string) {
+  updateAddress(@Body() updateAddressDto: UpdateAddressDto, @Param('id') id: string) {
+    // console.log(updateAddressDto)
     return this.authService.updateAddress(updateAddressDto, id);
   }
 
   @Delete('/deleteAddress/:id')
   @UseGuards(AuthGuard('user-jwt'))
-  deleteAddress(@Param('id') id: string, @Body() body: any) {
+  deleteAddress(@Param('id') id: string, @Body() body: DeleteAddressDto) {
     return this.authService.deleteAddress(id, body.userId);
   }
 
@@ -204,7 +213,7 @@ export class AuthController {
   //default address update
   @Put('/updateState/:id')
   @UseGuards(AuthGuard('user-jwt'))
-  async updateState(@Param('id') id: string, @Body() body: any) {
+  async updateState(@Param('id') id: string, @Body() body: DeleteAddressDto) {
     return await this.authService.updateState(id, body.userId);
   }
 
