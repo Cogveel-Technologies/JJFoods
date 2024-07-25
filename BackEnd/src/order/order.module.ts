@@ -14,10 +14,13 @@ import { RazorpayModule } from 'src/razorpay/razorpay.module';
 import { FeedbackModule } from 'src/feedback/feedback.module';
 import { Used, UsedSchema } from 'src/coupon/schemas/used.schema';
 import { Discrepancy, DiscrepancySchema } from 'src/pet-pooja/schemas/stock.schema';
+import { FeesSchema } from './schemas/fees.schema';
+
+
 
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }]), CartModule, CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule)],
+  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }]), CartModule, CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule)],
   providers: [OrderService],
   controllers: [OrderController],
   exports: [OrderService]

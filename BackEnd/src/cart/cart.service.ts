@@ -5,6 +5,7 @@ import { User } from 'src/auth/schemas/user.schema';
 import { Cart } from './schemas/cart.schema';
 import { Admin } from 'src/auth/schemas/admin.schema';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
+import { Fees } from 'src/order/schemas/fees.schema';
 
 
 @Injectable()
@@ -14,7 +15,8 @@ export class CartService {
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
-    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>
+    @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>,
+    @InjectModel(Fees.name) private feesModel: Model<Fees>
   ) { }
   async bulkAddCart(body) {
     const { userId, products } = body;
@@ -67,7 +69,7 @@ export class CartService {
     const { userId } = body;
     const { itemId } = body.product;
     const { quantity } = body
-    console.log(quantity)
+    // console.log(quantity)
     const cart = await this.cartModel.findOne({ user: userId });
     if (cart) {
       const productExist = cart.cartItems.findIndex(
@@ -123,7 +125,9 @@ export class CartService {
     }
     // console.log("req", userId, body.discount)
     let discount = 0;
-    let deliveryFee = 0;
+    const feeDocument = await this.feesModel.findOne();
+
+    let deliveryFee = feeDocument?.deliveryFee || 0;
     if (body?.discount) {
       discount = body?.discount
     }
@@ -174,8 +178,8 @@ export class CartService {
     const cgst = taxes[0].tax * itemsTotal / 100;
     const sgst = taxes[1].tax * itemsTotal / 100;
 
-
-    const platformFee = 15;
+    // const feesDoc = await this.feesModel.findOne()
+    const platformFee = feeDocument?.platformFee || 0;
 
     const grandTotal = itemsTotal + cgst + sgst + platformFee - discount + deliveryFee;
 
@@ -274,7 +278,7 @@ export class CartService {
     });
     if (cart) {
       let element = cart.cartItems.find(item => item.product.itemId === itemId);
-      console.log(element)
+      // console.log(element)
 
       if (element) {
         if (element.quantity <= 1) {

@@ -14,6 +14,8 @@ import { ConfigService } from '@nestjs/config';
 import { FeedbackService } from 'src/feedback/feedback.service';
 import { Used } from 'src/coupon/schemas/used.schema';
 import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
+import { Fees, FeesDocument } from './schemas/fees.schema';
+
 
 const { ObjectId } = require('mongodb');
 
@@ -33,9 +35,28 @@ export class OrderService {
     @InjectConnection() private connection: Connection,
     @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService,
     @InjectModel(Used.name) private readonly usedModel: Model<Used>,
-    @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>
+    @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
+    @InjectModel(Fees.name) private feeModel: Model<Fees>
 
   ) { }
+
+  async setFee(body) {
+    const { deliveryFee, platformFee } = body;
+    const feeDocument = await this.feeModel.findOne();
+
+    if (feeDocument) {
+      await this.feeModel.findOneAndUpdate(
+        { _id: feeDocument._id },
+        { $set: { deliveryFee, platformFee } }
+      );
+    } else {
+      const fee = new this.feeModel({ deliveryFee, platformFee });
+      await fee.save();
+    }
+
+    return { message: "done" };
+  }
+
   async processOrderStatusUpdate(data: any) {
     const {
       restID,
@@ -96,6 +117,11 @@ export class OrderService {
 
       if (order?.discount?.couponId) {
         await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+        await this.couponModel.findOneAndUpdate(
+          { _id: order.discount.couponId },
+          { $inc: { usageLimit: 1 } },
+          { new: true }
+        );
 
       }
 
@@ -391,7 +417,9 @@ export class OrderService {
     const { type, orderDate, orderTime } = body.preOrder;
 
     // const userCartDocument = await this.cartModel.findOne({ user: userId })
-    const deliveryFee = 0;
+    const FeesDocument = await this.feeModel.findOne()
+    const deliveryFee = FeesDocument?.deliveryFee || 0;
+    const platformFee = FeesDocument?.platformFee || 0;
 
     let discount = 0;
 
@@ -493,7 +521,7 @@ export class OrderService {
       itemsTotal: userCart?.itemsTotal,
       grandTotal: userCart?.grandTotal?.toFixed(2),
       deliveryFee: userCart?.deliveryFee,
-      platformFee: 15,
+      platformFee: FeesDocument?.platformFee || 0,
       orderPreference,
       address: body.address ? body.address : undefined,
 
@@ -525,7 +553,7 @@ export class OrderService {
       itemsTotal: userCart?.itemsTotal,
       grandTotal: userCart?.grandTotal.toFixed(2),
       deliveryFee: userCart?.deliveryFee,
-      platformFee: 15,
+      platformFee,
       orderPreference,
       address: body.address ? await this.addressModel.findOne({ _id: body.address }) : undefined,
 
@@ -578,7 +606,7 @@ export class OrderService {
       }
 
       const razorpay = await this.razorpayService.payment(razorpayBody);
-      console.log("create order razorpay", razorpay)
+      // console.log("create order razorpay", razorpay)
 
       order.payment.orderId = razorpay.id;
       await order.save()
@@ -624,11 +652,19 @@ export class OrderService {
 
 
     //if online paymentd done, refund
+    // console.log("before")
     if (order?.payment?.paymentMethod == 'online' && order.payment.status == true) {
+      // console.log("inside")
       await this.razorpayService.refund(orderId);
     }
+    console.log("after")
     if (order?.discount?.couponId) {
       await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+      await this.couponModel.findOneAndUpdate(
+        { _id: order.discount.couponId },
+        { $inc: { usageLimit: 1 } },
+        { new: true }
+      );
 
     }
     const today = new Date();
@@ -710,6 +746,11 @@ export class OrderService {
 
       if (order?.discount?.couponId) {
         await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
+        await this.couponModel.findOneAndUpdate(
+          { _id: order.discount.couponId },
+          { $inc: { usageLimit: 1 } },
+          { new: true }
+        );
 
       }
       const today = new Date();
@@ -851,7 +892,7 @@ export class OrderService {
       for (const product of order.products) {
 
         const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
-        console.log(item)
+        // console.log(item)
 
 
         if (item) {
@@ -859,7 +900,7 @@ export class OrderService {
 
         }
         const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
-        console.log(rating)
+        // console.log(rating)
         if (rating) {
           product.details.rating = rating;
         }
@@ -892,7 +933,7 @@ export class OrderService {
 
       }
       const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
-      console.log(rating)
+      // console.log(rating)
       if (rating) {
         product.details.rating = rating;
       } else {

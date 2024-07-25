@@ -1,10 +1,17 @@
 import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AuthGuard } from '@nestjs/passport';
+import { OrderDto } from './dtos/order.dto';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
+
+  @Post('/setFee')
+  @UseGuards(AuthGuard('admin-jwt'))
+  async setFee(@Body() body) {
+    return this.orderService.setFee(body)
+  }
 
   @Post('order-status')
   async handOrderStatus(@Body() body) {
@@ -46,9 +53,9 @@ export class OrderController {
   }
 
   @Post('/createOrder')
-  @UseGuards(AuthGuard('user-jwt'))
-  async createOrder(@Body() body) {
-    console.log("order body:---------------------------", body)
+  // @UseGuards(AuthGuard('user-jwt'))
+  async createOrder(@Body() body: OrderDto) {
+    // console.log("order body:---------------------------", body)
     return this.orderService.createOrder(body);
   }
 
@@ -71,14 +78,14 @@ export class OrderController {
   @Put('state/cancelled/:orderId')
   @UseGuards(AuthGuard('user-jwt'))
   async updateOrderStateCancelled(@Param('orderId') orderId: string) {
-    // console.log(body)
+    // console.log("body")
     return this.orderService.updateOrderStateCancelled(orderId);
   }
 
 
   @Post('user')
   @UseGuards(AuthGuard('user-jwt'))
-  async getOrdersByCustomerId(@Body() body) {
+  async getOrdersByCustomerId(@Body() body: { userId: string, state: string }) {
     //completed or processing
     // console.log(body)
     const res = await this.orderService.getOrdersByCustomerId(body.userId, body.state);
@@ -88,9 +95,9 @@ export class OrderController {
 
   @Post('/user/order')
   @UseGuards(AuthGuard('user-jwt'))
-  async getOrderByCustomerId(@Body() body) {
+  async getOrderByCustomerId(@Body() body: { userId: string, orderId: string }) {
 
-    // console.log("---------------------------", body)
+    // console.log("------------called---------------", body)
     return this.orderService.getOrderByCustomerId(body.userId, body.orderId)
   }
 
@@ -104,6 +111,7 @@ export class OrderController {
   @Get(':orderId')
   @UseGuards(AuthGuard('user-jwt'))
   async getOrderById(@Param('orderId') orderId: string) {
+    // console.log("called")
     return this.orderService.getOrderById(orderId);
   }
 

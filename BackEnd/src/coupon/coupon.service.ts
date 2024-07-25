@@ -33,7 +33,7 @@ export class CouponService {
   }
   async decreaseUsage(body) {
 
-    console.log("coupon body", body)
+    // console.log("coupon body", body)
     const promotionalCode = await this.couponModel.findById(body.couponId).exec();
     if (!promotionalCode) {
       throw new Error('Promotional code not found');
@@ -48,16 +48,18 @@ export class CouponService {
     }
 
     const user = await this.usedModel.findOne({ code: body.couponId, user: body.userId }).exec();
-    console.log(user)
+    // console.log(user)
     if (user) {
 
 
       throw new Error('Coupon already used');
     }
-    if (body.price < promotionalCode.minimumOrder && body.price > promotionalCode.maximumOrder) {
+    // console.log(body.price, "----------------", promotionalCode.minimumOrder)
+    if (body.price < promotionalCode.minimumOrder || body.price > promotionalCode.maximumOrder) {
+      return await this.cartService.getUserCart(body.userId, {})
       throw new Error('Minimum/Maximum order not met');
     }
-
+    // console.log("hello")
 
 
     if (body?.toApply) {
@@ -77,7 +79,7 @@ export class CouponService {
     else {
       const discount = promotionalCode.discountAmount;
       const res = await this.cartService.getUserCart(body.userId, { discount })
-      console.log(res)
+      // console.log(res)
       return res;
 
     }

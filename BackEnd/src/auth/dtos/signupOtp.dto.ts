@@ -7,6 +7,7 @@ export class SignupOtpDto {
   // @Transform(({ value }) => parseInt(value))
   @IsNotEmpty()
   @IsEmail({}, { message: "please enter correct email" })
+  @Transform(({ value }) => value.trim().toLowerCase())
   emailId: string;
 
 

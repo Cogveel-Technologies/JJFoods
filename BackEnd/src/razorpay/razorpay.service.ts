@@ -7,6 +7,7 @@ import { Order } from 'src/order/schemas/order.schema';
 import { ConfigService } from '@nestjs/config';
 import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 import { CartService } from 'src/cart/cart.service';
+import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
 var Razorpay = require('razorpay')
 
 @Injectable()
@@ -14,17 +15,18 @@ export class RazorpayService {
   constructor(@InjectModel(Salt.name) private saltModel: Model<Salt>,
     @InjectModel(Order.name) private orderModel: Model<Order>,
     private configService: ConfigService,
+    @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService,
     @Inject(CartService) private readonly cartService: CartService) { }
 
   async payment(body) {
-    console.log("razorpay body", body)
+    // console.log("razorpay body", body)
     const razorpay = await new Razorpay({
       key_id: this.configService.get<string>('RAZORPAY_ID'),
       key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
     });
 
-    console.log("razorpay key object", razorpay)
+    // console.log("razorpay key object", razorpay)
 
 
 
@@ -35,16 +37,16 @@ export class RazorpayService {
       const amt = parseFloat(amount)
       // console.log(amt, "0000000000000000000")
       // console.log(parseFloat(amount) * 100, "111111111111111111")
-      console.log("before")
+      // console.log("before")
       const order = await razorpay.orders.create({
         amount: Math.round(parseFloat(amount) * 100),
 
         currency,
         receipt,
       });
-      console.log("after")
+      // console.log("after")
 
-      console.log("razorpay order create", order)
+      // console.log("razorpay order create", order)
 
       //hashing 
       const saltOrRounds = 10;
@@ -68,7 +70,7 @@ export class RazorpayService {
   };
 
   async fetchPaymentById(body) {
-    console.log("fetch payment is called-----------------------------------", body)
+    // console.log("fetch payment is called-----------------------------------", body)
 
 
     // console.log("fetch payment by id body", body)
@@ -112,7 +114,7 @@ export class RazorpayService {
 
 
     const razorpayResponse = await instance.payments.fetch(rPaymentId)
-    console.log("razorpay response", razorpayResponse)
+    // console.log("razorpay response", razorpayResponse)
     const rPassword = razorpayResponse.amount / 100 + body.orderId;
     const isMatchR = await bcrypt.compare(rPassword, saltSaved.salt);
 
@@ -207,7 +209,42 @@ export class RazorpayService {
     order.payment.signature = rSignature
     order.payment.reason = body?.reason
 
-    order.state = "cancelled"
+    order.state = "cancelled";
+
+    // stock schema decrease quanitity
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the most recent discrepancy document (or today's document if it exists)
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+    }
+
+    if (!discrepancy) {
+      throw new Error('No stock information available');
+    }
+
+    // Iterate over the products in the order and update the used field
+    for (let i = 0; i < order.products.length; i++) {
+      const product = order.products[i];
+      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+
+      if (stockItem) {
+        stockItem.used -= product.quantity;
+        if (stockItem.used < 0) {
+          stockItem.used = 0; // Ensure used doesn't go below 0
+        }
+      }
+    }
+
+    // Mark the stockItems array as modified and save the discrepancy document
+    discrepancy.markModified('stockItems');
+    await discrepancy.save();
+
     await order.save()
 
 
@@ -220,6 +257,7 @@ export class RazorpayService {
   async handleFailure(body) {
     // console.log("handle failure is called-----------------------------------", body)
     const order = await this.orderModel.findById(body.orderId)
+    // console.log(order)
 
 
     order.state = "cancelled";
@@ -230,6 +268,38 @@ export class RazorpayService {
       order.payment.signature = body?.rSignature;
       order.payment.reason = body?.reason;
     }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find the most recent discrepancy document (or today's document if it exists)
+    let discrepancy = await this.discrepancyModel.findOne({
+      createdAt: { $gte: today },
+    }).exec();
+
+    if (!discrepancy) {
+      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+    }
+
+    if (!discrepancy) {
+      throw new Error('No stock information available');
+    }
+
+    // Iterate over the products in the order and update the used field
+    for (let i = 0; i < order.products.length; i++) {
+      const product = order.products[i];
+      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+
+      if (stockItem) {
+        stockItem.used -= product.quantity;
+        if (stockItem.used < 0) {
+          stockItem.used = 0; // Ensure used doesn't go below 0
+        }
+      }
+    }
+
+    // Mark the stockItems array as modified and save the discrepancy document
+    discrepancy.markModified('stockItems');
+    await discrepancy.save();
 
     await order.save()
     return { message: "error" }
@@ -254,12 +324,16 @@ export class RazorpayService {
       key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
     })
     const paymentId = order.payment.paymentId;
-
+    console.log("inside refund")
+    // console.log(paymentId)
+    // console.log(Math.round(order.grandTotal * 100))
     const refundResponse = await instance.payments.refund(paymentId, {
+      // "amount": Math.round(order.grandTotal * 100),
       "amount": Math.round(order.grandTotal * 100),
       "speed": "optimum",
-      "receipt": "refund"
+      // "receipt": "refund 1234"
     })
+    // console.log("refund response", refundResponse)
 
     order.payment.refund = true;
     order.payment.refundId = refundResponse.id

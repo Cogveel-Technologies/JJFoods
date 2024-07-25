@@ -47,7 +47,7 @@ export class PetPoojaService {
 
     if (!discrepancy) {
       const { items } = await this.menu()
-      const res = items.slice(0, 5).map((item) => {
+      const res = items.map((item) => {
 
         return {
           name: item.itemname,
@@ -101,7 +101,7 @@ export class PetPoojaService {
 
     if (!discrepancy) {
       const { items } = await this.menu()
-      const res = items.slice(0, 5).map((item) => {
+      const res = items.map((item) => {
 
         return {
           name: item.itemname,
@@ -122,10 +122,12 @@ export class PetPoojaService {
       let existingStock = discrepancy.stockItems.find(item => item.itemId === stockItemDto.itemId);
 
       if (existingStock) {
+        const prevQuantity = existingStock.quantity ? existingStock.quantity : 0;
         existingStock.quantity = stockItemDto.quantity;
         //  let  value=  existingStock.actualQuantity==0?stockItemDto.quantity:existingStock.actualQuantity+stockItemDto.quantity ;
-        existingStock.actualQuantity = stockItemDto.quantity;
-        existingStock.discrepancy = 0;
+        const prevActualQuantity = existingStock.actualQuantity ? existingStock.actualQuantity : 0;
+        existingStock.actualQuantity = prevActualQuantity + stockItemDto.quantity - prevQuantity;
+        // existingStock.discrepancy = 0;
       }
       // } else {
       //   const createdStock = new this.stockModel(stockItemDto);
@@ -154,7 +156,7 @@ export class PetPoojaService {
 
     if (!discrepancy) {
       const { items } = await this.menu()
-      const res = items.slice(0, 5).map((item) => {
+      const res = items.map((item) => {
 
         return {
           name: item.itemname,
@@ -196,6 +198,41 @@ export class PetPoojaService {
 
   }
 
+  // async getStock() {
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+
+  //   let discrepancy = await this.discrepancyModel.findOne({
+  //     createdAt: { $gte: today },
+  //   }).exec();
+
+  //   if (!discrepancy) {
+  //     discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+  //   }
+
+  //   if (!discrepancy) {
+  //     const { items } = await this.menu()
+  //     const res = items.map((item) => {
+
+  //       return {
+  //         name: item.itemname,
+  //         itemId: item.itemid,
+  //         quantity: 0,
+  //         used: 0,
+  //         actualQuantity: 0,
+  //         discrepancy: 0
+  //       };
+  //     });
+  //     return res
+  //   }
+  //   return discrepancy.stockItems;
+
+
+
+
+
+
+  // }
   async getStock() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -205,13 +242,25 @@ export class PetPoojaService {
     }).exec();
 
     if (!discrepancy) {
-      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+      const startOfYesterday = new Date();
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      startOfYesterday.setHours(0, 0, 0, 0);
+
+      const endOfYesterday = new Date();
+      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      endOfYesterday.setHours(23, 59, 59, 999);
+
+      discrepancy = await this.discrepancyModel.findOne({
+        createdAt: {
+          $gte: startOfYesterday,
+          $lte: endOfYesterday
+        }
+      }).sort({ createdAt: -1 }).exec();
     }
 
     if (!discrepancy) {
-      const { items } = await this.menu()
-      const res = items.slice(0, 5).map((item) => {
-
+      const { items } = await this.menu();
+      const res = items.map((item) => {
         return {
           name: item.itemname,
           itemId: item.itemid,
@@ -221,15 +270,9 @@ export class PetPoojaService {
           discrepancy: 0
         };
       });
-      return res
+      return res;
     }
     return discrepancy.stockItems;
-
-
-
-
-
-
   }
 
 
@@ -391,6 +434,10 @@ export class PetPoojaService {
       // Retrieve categories and items
       const categories = await this.connection.collection('categories').find().toArray();
       const items = await this.connection.collection('items').find().toArray();
+      // const [categories, items] = await Promise.all([
+      //   this.connection.collection('categories').find().toArray(),
+      //   this.connection.collection('items').find().toArray()
+      // ]);
 
       return {
         categories: categories,
@@ -412,6 +459,7 @@ export class PetPoojaService {
 
   @Cron(getCronInterval())
   async handleCron() {
+    // console.log("updated successfully 123")
     const data = await this.fetchMenu();
     this.updateDatabase(data)
     return "updated"
