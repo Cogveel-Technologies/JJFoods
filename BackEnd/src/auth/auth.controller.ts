@@ -29,6 +29,7 @@ import { UserDeleteDto } from './dtos/userDelete.dto';
 import { AddressDto } from './dtos/address.dto';
 import { UpdateAddressDto } from './dtos/updateAddress.dto';
 import { DeleteAddressDto } from './dtos/deleteAddress.dto';
+import { UpdateAdminDto } from './dtos/updateAdmin.dto';
 
 
 @Controller('auth')
@@ -58,7 +59,7 @@ export class AuthController {
   @Put('/superAdmin/update')
   @UseGuards(AuthGuard('admin-jwt'))
   @UseInterceptors(FileInterceptor('file'))
-  superAdminUpdate(@Body() updateProfileDto,
+  superAdminUpdate(@Body() updateProfileDto: UpdateAdminDto,
     @UploadedFile() file: Express.Multer.File,) {
     // console.log(updateProfileDto, file);
     return this.authService.superAdminUpdate(updateProfileDto, file);

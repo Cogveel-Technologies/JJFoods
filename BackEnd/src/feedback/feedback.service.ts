@@ -77,4 +77,13 @@ export class FeedbackService {
     return 0;
 
   }
+
+  async findAll() {
+    return this.ratingOrderModel.find()
+  }
+
+  async findOne(id) {
+    return this.ratingOrderModel.findById(id)
+
+  }
 }

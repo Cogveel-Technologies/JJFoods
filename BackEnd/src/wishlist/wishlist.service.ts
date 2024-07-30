@@ -12,20 +12,45 @@ export class WishlistService {
   constructor(@InjectModel(Wishlist.name) private WishlistModel: Model<Wishlist>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService, @Inject(forwardRef(() => FeedbackService)) private readonly feedbackService: FeedbackService,
     @Inject(forwardRef(() => CartService)) private readonly cartService: CartService) { }
+  // async addItem(body) {
+  //   const { userId, itemId } = body;
+
+
+
+  //   const item = await new this.WishlistModel({
+  //     user: userId,
+  //     itemId
+  //   })
+
+  //   await item.save();
+
+  //   return await this.petPoojaService.getItemById(itemId, userId)
+  // }
   async addItem(body) {
     const { userId, itemId } = body;
 
+    // Wrap in a try-catch block for error handling
+    try {
+      // Create a new wishlist item
+      const item = new this.WishlistModel({
+        user: userId,
+        itemId
+      });
 
+      // Save the item and fetch the details in parallel
+      await item.save();
 
-    const item = await new this.WishlistModel({
-      user: userId,
-      itemId
-    })
+      // Fetch the item details
+      const itemDetails = await this.petPoojaService.getItemById(itemId, userId);
 
-    await item.save();
-
-    return await this.petPoojaService.getItemById(itemId, userId)
+      return itemDetails;
+    } catch (error) {
+      // Handle any errors
+      console.error('Error adding item:', error);
+      throw new Error('Error adding item');
+    }
   }
+
   async removeItemFromList(body) {
     const { userId, itemId } = body;
 

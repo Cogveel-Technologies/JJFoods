@@ -75,6 +75,6 @@ import { JwtAdminStrategyB } from './jwtReservedAdminB.strategy';
   ],
   providers: [AuthService, JwtStrategy, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard, AdminJwtGuardA, AdminJwtGuardB, JwtAdminStrategyA, JwtAdminStrategyB],
   controllers: [AuthController],
-  exports: [JwtStrategy, PassportModule, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard, AdminJwtGuardB, AdminJwtGuardA, JwtAdminStrategyA, JwtAdminStrategyB]
+  exports: [JwtStrategy, PassportModule, JwtAdminStrategy, UserJwtGuard, AdminJwtGuard, JwtAuthGuard, AdminJwtGuardB, AdminJwtGuardA, JwtAdminStrategyA, JwtAdminStrategyB, AuthService]
 })
 export class AuthModule { }

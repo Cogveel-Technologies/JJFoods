@@ -324,7 +324,7 @@ export class RazorpayService {
       key_secret: this.configService.get<string>('RAZORPAY_SECRET'),
     })
     const paymentId = order.payment.paymentId;
-    console.log("inside refund")
+    // console.log("inside refund")
     // console.log(paymentId)
     // console.log(Math.round(order.grandTotal * 100))
     const refundResponse = await instance.payments.refund(paymentId, {

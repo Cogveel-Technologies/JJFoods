@@ -14,6 +14,7 @@ export class NotificationService {
 
 
   async sendPushNotificationsToUsers(body) {
+    // console.log("called")
 
     try {
       // Fetch all registered drivers

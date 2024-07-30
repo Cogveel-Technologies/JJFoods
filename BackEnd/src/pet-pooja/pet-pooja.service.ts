@@ -46,7 +46,7 @@ export class PetPoojaService {
     }).exec();
 
     if (!discrepancy) {
-      const { items } = await this.menu()
+      const { items } = await this.menus()
       const res = items.map((item) => {
 
         return {
@@ -100,7 +100,7 @@ export class PetPoojaService {
     }).exec();
 
     if (!discrepancy) {
-      const { items } = await this.menu()
+      const { items } = await this.menus()
       const res = items.map((item) => {
 
         return {
@@ -155,7 +155,7 @@ export class PetPoojaService {
     }).exec();
 
     if (!discrepancy) {
-      const { items } = await this.menu()
+      const { items } = await this.menus()
       const res = items.map((item) => {
 
         return {
@@ -259,7 +259,7 @@ export class PetPoojaService {
     }
 
     if (!discrepancy) {
-      const { items } = await this.menu();
+      const { items } = await this.menus();
       const res = items.map((item) => {
         return {
           name: item.itemname,
@@ -270,6 +270,7 @@ export class PetPoojaService {
           discrepancy: 0
         };
       });
+      console.log("called")
       return res;
     }
     return discrepancy.stockItems;
@@ -420,7 +421,7 @@ export class PetPoojaService {
   //     items: items
   //   }
   // }
-  async menu() {
+  async menus() {
     try {
       // Check if the restaurant is open
       const restaurantDetails = await this.restaurantModel.findOne();
@@ -454,6 +455,145 @@ export class PetPoojaService {
       throw new HttpException('Internal server error', 500);
     }
   }
+  async menu() {
+    try {
+
+      // Check if the restaurant is open
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        throw new HttpException('Restaurant details not found', 404);
+      }
+      if (!restaurantDetails.isOpen) {
+        return { restaurantStatus: false };
+      }
+
+      // Retrieve categories and items
+      const [categories, items, discrepancyStockItems] = await Promise.all([
+        this.connection.collection('categories').find().toArray(),
+        this.connection.collection('items').find().toArray(),
+        this.getStock(), // Call getStock to retrieve discrepancy data
+      ]);
+      const categoryMap = categories.reduce((map, category) => {
+        map[category.categoryid] = category;
+        return map;
+      }, {});
+
+
+
+
+      // Map itemstockquantity to items using quantity - used
+      const itemsWithStock = items.map(item => {
+        const stockItem = discrepancyStockItems.find(stock => stock.itemId === item.itemid);
+        const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+        return {
+          ...item,
+          item_categoryid: item.item_categoryid,
+          itemstockquantity,
+        };
+      });
+
+
+      const groupedItems = itemsWithStock.reduce((result, item) => {
+        const categoryid = item.item_categoryid;
+        if (categoryMap[categoryid]) {
+          if (!result[categoryid]) {
+            result[categoryid] = {
+              category: categoryMap[categoryid],
+              items: [],
+            };
+          }
+          result[categoryid].items.push(item);
+        }
+        return result;
+      }, {});
+
+      return groupedItems;
+
+
+
+
+      return {
+        categories,
+        items: itemsWithStock,
+      };
+    } catch (error) {
+      // Handle specific known errors
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Log the error and return a generic error response
+      console.error('An error occurred in the menu method:', error);
+      throw new HttpException('Internal server error', 500);
+    }
+  }
+  // async menu() {
+  //   try {
+  //     // Check if the restaurant is open
+  //     const restaurantDetails = await this.restaurantModel.findOne().lean();
+  //     if (!restaurantDetails) {
+  //       throw new HttpException('Restaurant details not found', 404);
+  //     }
+  //     if (!restaurantDetails.isOpen) {
+  //       return { restaurantStatus: false };
+  //     }
+
+  //     // Retrieve categories and items in parallel
+  //     const [categories, items, discrepancyStockItems] = await Promise.all([
+  //       this.connection.collection('categories').find().toArray(),
+  //       this.connection.collection('items').find().toArray(),
+  //       this.getStock(), // Call getStock to retrieve discrepancy data
+  //     ]);
+
+  //     // Create a category map for quick lookup
+  //     const categoryMap = categories.reduce((map, category) => {
+  //       map[category.categoryid] = category;
+  //       return map;
+  //     }, {});
+
+  //     // Create a stock map for quick lookup
+  //     const stockMap = discrepancyStockItems.reduce((map, stock) => {
+  //       map[stock.itemId] = stock;
+  //       return map;
+  //     }, {});
+
+  //     // Map itemstockquantity to items using quantity - used and group items by category
+  //     const groupedItems = items.reduce((result, item) => {
+  //       const stockItem = stockMap[item.itemid];
+  //       const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+  //       const categoryid = item.item_categoryid;
+  //       if (categoryMap[categoryid]) {
+  //         if (!result[categoryid]) {
+  //           result[categoryid] = {
+  //             category: categoryMap[categoryid],
+  //             items: [],
+  //           };
+  //         }
+  //         result[categoryid].items.push({
+  //           ...item,
+  //           itemstockquantity,
+  //         });
+  //       }
+  //       return result;
+  //     }, {});
+
+  //     return groupedItems;
+
+  //   } catch (error) {
+  //     // Handle specific known errors
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     }
+
+  //     // Log the error and return a generic error response
+  //     console.error('An error occurred in the menu method:', error);
+  //     throw new HttpException('Internal server error', 500);
+  //   }
+  // }
+
+
 
 
 

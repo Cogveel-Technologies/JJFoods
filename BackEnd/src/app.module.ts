@@ -18,6 +18,7 @@ import { roles } from './auth/user.roles';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -56,7 +57,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 10,
-    }])
+    }]),
+    MenuModule
   ],
   controllers: [AppController],
   providers: [AppService],

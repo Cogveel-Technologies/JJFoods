@@ -35,6 +35,9 @@ export class Coupon {
   @Prop()
   isPercent: boolean
 
+  @Prop()
+  isActive: boolean
+
 
 }
 
