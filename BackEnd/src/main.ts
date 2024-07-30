@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -24,6 +25,15 @@ async function bootstrap() {
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       credentials: true, // Enable credentials (e.g., cookies, authorization headers)
     });
+    //swagger
+    const config = new DocumentBuilder()
+      .setTitle('jjfoods ')
+      .setDescription('The jjfoods API description')
+      .setVersion('1.0')
+      .addTag('jjfoods')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
 
     // Ensure PORT is defined in environment variables
     const port = process.env.PORT || 3000;
