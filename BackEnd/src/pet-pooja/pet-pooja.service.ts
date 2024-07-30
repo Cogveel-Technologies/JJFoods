@@ -270,7 +270,7 @@ export class PetPoojaService {
           discrepancy: 0
         };
       });
-      console.log("called")
+      // console.log("called")
       return res;
     }
     return discrepancy.stockItems;

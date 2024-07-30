@@ -29,7 +29,7 @@ export class PetPoojaController {
   @UseGuards(AuthGuard('reserved-admin-b-jwt'))
   async reservedAdminQuantityB(@Body() body: [AddStockDto]) {
     // console.log("called b")
-    console.log(body)
+    // console.log(body)
     return this.petPoojaService.reservedAdminQuantityB(body)
 
   }
@@ -43,7 +43,7 @@ export class PetPoojaController {
 
   @Get('menu')
   fetchMenu(): any {
-    console.log("request")
+    // console.log("request")
     return this.petPoojaService.menu()
   }
 

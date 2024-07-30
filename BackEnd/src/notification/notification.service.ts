@@ -24,7 +24,7 @@ export class NotificationService {
       const deviceTokens = users.map(user => user.deviceToken).filter(Boolean);
 
       if (deviceTokens.length === 0) {
-        throw new Error("no users")
+        return new Error("no users")
       }
 
       // Define the notification payload
