@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nest
 import { PetPoojaService } from './pet-pooja.service';
 import { AuthGuard } from '@nestjs/passport';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { AddStockDto } from './dtos/addStock.dto';
 
 @Controller('petPooja')
 export class PetPoojaController {
@@ -18,7 +19,7 @@ export class PetPoojaController {
 
   @Post('reservedadminquantitya')
   @UseGuards(AuthGuard('reserved-admin-a-jwt'))
-  async reservedAdminQuantityA(@Body() body) {
+  async reservedAdminQuantityA(@Body() body: [AddStockDto]) {
     // console.log("called a");
     // console.log(body)
     return this.petPoojaService.reservedAdminQuantityA(body)
@@ -26,9 +27,9 @@ export class PetPoojaController {
   }
   @Post('reservedadminquantityb')
   @UseGuards(AuthGuard('reserved-admin-b-jwt'))
-  async reservedAdminQuantityB(@Body() body) {
+  async reservedAdminQuantityB(@Body() body: [AddStockDto]) {
     // console.log("called b")
-    // console.log(body)
+    console.log(body)
     return this.petPoojaService.reservedAdminQuantityB(body)
 
   }
@@ -42,7 +43,7 @@ export class PetPoojaController {
 
   @Get('menu')
   fetchMenu(): any {
-    // console.log("request")
+    console.log("request")
     return this.petPoojaService.menu()
   }
 

@@ -255,7 +255,7 @@ export class AuthService {
         phoneNumber: admin.phoneNumber,
         role: admin.role
       };
-      const { items } = await this.petPoojaService.menu()
+      const { items } = await this.petPoojaService.menus()
 
 
 

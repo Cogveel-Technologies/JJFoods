@@ -9,7 +9,7 @@ export class OrderController {
 
   @Post('/setFee')
   @UseGuards(AuthGuard('admin-jwt'))
-  async setFee(@Body() body) {
+  async setFee(@Body() body: { deliveryFee: string, platformFee: string }) {
     return this.orderService.setFee(body)
   }
 
@@ -20,7 +20,7 @@ export class OrderController {
 
   @Get('admin/orders/:state/:orderType')
   @UseGuards(AuthGuard('admin-jwt'))
-  async getAdminOrdersByState(@Param('state') state, @Param('orderType') orderType) {
+  async getAdminOrdersByState(@Param('state') state: 'Pending' | 'Processing' | 'Completed' | 'Cancelled' | 'OnTheWay', @Param('orderType') orderType: 'true' | 'false') {
     // console.log(state, orderType)
     const res = await this.orderService.getAdminOrdersByState(state, orderType)
     // console.log(res)
@@ -69,7 +69,9 @@ export class OrderController {
   @UseGuards(AuthGuard('admin-jwt'))
   async updateOrderStatePending(@Param('orderId') orderId: string, @Body() body) {
     // console.log(body)
-    return this.orderService.updateOrderStatePending(orderId, body.state);
+    const state: 'processing' | 'prcoessing' = body.state;
+
+    return this.orderService.updateOrderStatePending(orderId, state);
   }
   // @Put('status/:orderId')
   // async updateOrderStatus(@Param('orderId') orderId: string, @Body('status') status: string) {

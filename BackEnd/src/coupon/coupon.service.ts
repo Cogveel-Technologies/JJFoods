@@ -121,7 +121,8 @@ export class CouponService {
       _id: { $nin: usedCouponCodes },
       validFrom: { $lte: currentDate },
       validTo: { $gte: currentDate },
-      usageLimit: { $ne: 0 } // Add this condition to filter out coupons with usageLimit 0
+      usageLimit: { $ne: 0 }, // Add this condition to filter out coupons with usageLimit 0
+      isActive: true
     }).exec();
 
     return availableCoupons;
@@ -146,7 +147,8 @@ export class CouponService {
 
       const availableCoupons = await this.couponModel.find({
         validFrom: { $lte: currentDate },
-        validTo: { $gte: currentDate }
+        validTo: { $gte: currentDate },
+        isActive: true
       }).exec();
 
       return availableCoupons;
@@ -156,6 +158,33 @@ export class CouponService {
       throw new HttpException('Internal server error', 500);
     }
   }
+  async findAllAdmin() {
+    return await this.couponModel.find()
 
+  }
+
+  async findPromotionalCodeById(id: string) {
+    return this.couponModel.findById(id).exec();
+  }
+  async updatePromotionalCode(id: string, updatePromotionalCodeDto) {
+    try {
+
+      return this.couponModel.findByIdAndUpdate(id, updatePromotionalCodeDto, { new: true }).exec();
+    }
+    catch (e) {
+      return e.message;
+    }
+  }
+
+  async deletePromotionalCode(id: string) {
+    return this.couponModel.findByIdAndDelete(id).exec();
+  }
+
+  async updateStatus(id) {
+    let coupon = await this.couponModel.findById(id)
+    coupon.isActive = coupon.isActive ? false : true;
+
+    return await coupon.save()
+  }
 
 }

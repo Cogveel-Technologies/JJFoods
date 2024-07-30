@@ -51,4 +51,17 @@ export class FeedbackController {
     return review
 
   }
+
+  @Get('admin/all')
+  @UseGuards(AuthGuard('admin-jwt'))
+  async findAll() {
+    return this.feedbackService.findAll()
+  }
+
+  @Get('admin/:id')
+  @UseGuards(AuthGuard('admin-jwt'))
+  async findOne(@Param('id') id) {
+    return this.feedbackService.findOne(id)
+  }
+
 }
