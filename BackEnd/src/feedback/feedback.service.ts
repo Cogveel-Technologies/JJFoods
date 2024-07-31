@@ -42,8 +42,20 @@ export class FeedbackService {
   }
 
   async getOrderItemRating(body) {
+    // console.log(body)
 
-    const rating = await this.ratingOrderModel.findOne({ order: body.orderId, itemId: body.itemId });
+    const rating = await this.ratingOrderModel.findOne({ order: body.orderId, itemId: body["itemId"] });
+    // console.log("feedbackRating", rating)
+    if (rating) {
+
+      return rating.rating
+    }
+    return 0;
+  }
+  async getOrderRating(body) {
+    // console.log(body)
+
+    const rating = await this.ratingOrderModel.findOne({ order: body.orderId });
     // console.log("feedbackRating", rating)
     if (rating) {
 

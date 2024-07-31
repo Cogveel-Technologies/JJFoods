@@ -53,7 +53,7 @@ export class FeedbackController {
   }
 
   @Get('admin/all')
-  // @UseGuards(AuthGuard('admin-jwt'))
+  @UseGuards(AuthGuard('admin-jwt'))
   async findAll() {
     const res = await this.feedbackService.findAll()
     // console.log(res)

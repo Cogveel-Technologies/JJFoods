@@ -31,7 +31,7 @@ import { MenuModule } from './menu/menu.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const mongoUrl = configService.get<string>('MONGO_URL');
+        const mongoUrl = configService.get<string>('MONGO_URL_LOCAL');
         if (!mongoUrl) {
           throw new Error('MONGO_URL is not defined in the environment variables');
         }

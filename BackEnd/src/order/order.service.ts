@@ -874,6 +874,7 @@ export class OrderService {
       { "payment.paymentMethod": "online", "payment.status": false, user: userId },
       { $set: { state: "cancelled" } }
     );
+    // console.log("123")
 
     let queryStates;
     if (state === 'running') {
@@ -884,22 +885,31 @@ export class OrderService {
       // If the state doesn't match 'running' or 'history', return an empty array or handle accordingly
       return [];
     }
-
+    // console.log("456")
     // Query the database with the mapped states
     const orders = await this.orderModel.find({ user: userId, state: { $in: queryStates } }).exec();
     // return response;
     for (const order of orders) {
       for (const product of order.products) {
+        // console.log("789")
 
         const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
         // console.log(item)
+        // console.log("912")
 
 
         if (item) {
           product.details = item
 
         }
-        const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
+
+        const body = {
+          orderId: order._id,
+          itemId: product.itemId
+        }
+
+        const rating = await this.feedbackService.getOrderItemRating(body)
+        // console.log("getorderrating api")
         // console.log(rating)
         if (rating) {
           product.details.rating = rating;
@@ -909,7 +919,7 @@ export class OrderService {
         }
         // console.log(product)
 
-
+        // console.log("678")
 
       }
     }
