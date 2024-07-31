@@ -18,7 +18,7 @@ export class RatingOrder {
 
 
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Item' })
+  @Prop()
   itemId: string;
   // @Prop({ type: Schema.Types.ObjectId, ref: 'User', required: true })
   //   userId: User

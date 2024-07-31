@@ -86,7 +86,7 @@ export class OrderController {
 
 
   @Post('user')
-  @UseGuards(AuthGuard('user-jwt'))
+  // @UseGuards(AuthGuard('user-jwt'))
   async getOrdersByCustomerId(@Body() body: { userId: string, state: string }) {
     //completed or processing
     // console.log(body)
