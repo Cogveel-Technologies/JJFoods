@@ -69,7 +69,7 @@ export class OrderController {
   @UseGuards(AuthGuard('admin-jwt'))
   async updateOrderStatePending(@Param('orderId') orderId: string, @Body() body) {
     // console.log(body)
-    const state: 'processing' | 'prcoessing' = body.state;
+    const state: 'processing' | 'cancelled' | 'rejected' = body.state;
 
     return this.orderService.updateOrderStatePending(orderId, state);
   }

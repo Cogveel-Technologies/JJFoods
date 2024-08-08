@@ -11,9 +11,10 @@ import { CartModule } from 'src/cart/cart.module';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { AuthModule } from 'src/auth/auth.module';
 import { Discrepancy, DiscrepancySchema } from 'src/pet-pooja/schemas/stock.schema';
+import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/restaurant.schema';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, forwardRef(() => AuthModule)],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, forwardRef(() => AuthModule)],
   providers: [RazorpayService],
   controllers: [RazorpayController],
   exports: [RazorpayService]

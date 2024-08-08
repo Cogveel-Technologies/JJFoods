@@ -6,10 +6,9 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
-
-  @Get()
+  @Get('/nur')
   @UseGuards(ThrottlerGuard)
   getHello(): string {
-    return this.appService.getHello();
+    return this.appService.getHello()
   }
 }

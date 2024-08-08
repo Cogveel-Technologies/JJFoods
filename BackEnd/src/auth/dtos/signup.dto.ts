@@ -32,7 +32,7 @@
 
 // }
 import { Transform, Type } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Max, Min, ValidateNested, ArrayNotEmpty } from "class-validator";
+import { IsEmail, IsNotEmpty, IsNumber, IsString, Max, Min, ValidateNested, ArrayNotEmpty, IsOptional } from "class-validator";
 
 class Product {
   @IsNotEmpty()
@@ -70,8 +70,8 @@ export class SignupDto {
   @IsString()
   deviceToken: string;
 
-  @IsNotEmpty()
-  @ArrayNotEmpty()
+  @IsOptional()
+  // @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => Product)
   products: Product[];

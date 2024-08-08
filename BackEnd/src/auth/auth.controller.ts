@@ -72,11 +72,27 @@ export class AuthController {
     // console.log(body)
     return this.authService.restaurantStatus();
   }
+  @Put('/updateRestaurantMenu')
+  @UseGuards(AuthGuard('admin-jwt'))
+  restaurantMenuStatus() {
+    // console.log(body)
+    return this.authService.restaurantMenuStatus();
+  }
 
   @Get('/getRestaurantStatus')
-  getRestaurantStatus() {
+  async getRestaurantStatus() {
+    //to change restaurant and menu status in this api
+    // console.log("called1")
 
-    return this.authService.getRestaurantStatus();
+    const res = this.authService.getRestaurantStatus();
+    // console.log(await res)
+    // return { state: false }
+    return res
+  }
+  @Get('/getRestaurantMenuStatus')
+  getRestaurantMenuStatus() {
+
+    return this.authService.getRestaurantMenuStatus();
   }
   //create a new admin
   @Post('/superadmin1')

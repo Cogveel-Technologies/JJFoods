@@ -15,6 +15,9 @@ import { FeedbackService } from 'src/feedback/feedback.service';
 import { Used } from 'src/coupon/schemas/used.schema';
 import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
 import { Fees, FeesDocument } from './schemas/fees.schema';
+import { MenuCT } from 'src/menu/schema/menu.schema';
+import { CategoryCT } from 'src/menu/schema/categoryct.schema';
+import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 
 
 const { ObjectId } = require('mongodb');
@@ -36,7 +39,10 @@ export class OrderService {
     @Inject(forwardRef(() => FeedbackService)) private feedbackService: FeedbackService,
     @InjectModel(Used.name) private readonly usedModel: Model<Used>,
     @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
-    @InjectModel(Fees.name) private feeModel: Model<Fees>
+    @InjectModel(Fees.name) private feeModel: Model<Fees>,
+    @InjectModel(MenuCT.name) private menuCTModel: Model<MenuCT>,
+    @InjectModel(CategoryCT.name) private categoryCTModel: Model<CategoryCT>,
+    @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>
 
   ) { }
 
@@ -128,19 +134,33 @@ export class OrderService {
       if (order.payment.paymentMethod == 'online' && order.payment.status == true) {
         await this.razorpayService.refund(order._id);
       }
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Find the most recent discrepancy document (or today's document if it exists)
+      const restaurantDetails = await this.restaurantDetailsModel.findOne()
+      const menu = restaurantDetails.menu;
       let discrepancy = await this.discrepancyModel.findOne({
         createdAt: { $gte: today },
+        menu: menu
       }).exec();
 
       if (!discrepancy) {
-        discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
-      }
+        const startOfYesterday = new Date();
+        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+        startOfYesterday.setHours(0, 0, 0, 0);
 
+        const endOfYesterday = new Date();
+        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+        endOfYesterday.setHours(23, 59, 59, 999);
+
+        discrepancy = await this.discrepancyModel.findOne({
+          createdAt: {
+            $gte: startOfYesterday,
+            $lte: endOfYesterday
+          },
+          menu: menu
+        })
+      }
       if (!discrepancy) {
         throw new Error('No stock information available');
       }
@@ -254,7 +274,7 @@ export class OrderService {
         queryStates = ['completed'];
         break;
       case 'Cancelled':
-        queryStates = ['cancelled'];
+        queryStates = ['cancelled', 'rejected'];
         break;
       default:
         return [];
@@ -337,7 +357,8 @@ export class OrderService {
 
     const cancelledCount = await this.orderModel.countDocuments({
       createdAt: { $gte: startDate, $lte: endDate },
-      state: 'cancelled'
+      state: { $in: ['cancelled', 'rejected'] }
+
     }).exec();
 
     startDate = new Date();
@@ -450,15 +471,30 @@ export class OrderService {
     /// inventory
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
+    const restaurantDetails = await this.restaurantDetailsModel.findOne()
+    const menu = restaurantDetails.menu;
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
-      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
-    }
+      const startOfYesterday = new Date();
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      startOfYesterday.setHours(0, 0, 0, 0);
 
+      const endOfYesterday = new Date();
+      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      endOfYesterday.setHours(23, 59, 59, 999);
+
+      discrepancy = await this.discrepancyModel.findOne({
+        createdAt: {
+          $gte: startOfYesterday,
+          $lte: endOfYesterday
+        },
+        menu: menu
+      }).sort({ createdAt: -1 }).exec();
+    }
     if (!discrepancy) {
       throw new Error('No stock information available');
     }
@@ -657,7 +693,7 @@ export class OrderService {
       // console.log("inside")
       await this.razorpayService.refund(orderId);
     }
-    console.log("after")
+    // console.log("after")
     if (order?.discount?.couponId) {
       await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
       await this.couponModel.findOneAndUpdate(
@@ -671,13 +707,33 @@ export class OrderService {
     today.setHours(0, 0, 0, 0);
 
     // Find the most recent discrepancy document (or today's document if it exists)
+    const restaurantDetails = await this.restaurantDetailsModel.findOne();
+
+
+    let menu = restaurantDetails.menu;
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
-      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+      const startOfYesterday = new Date();
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      startOfYesterday.setHours(0, 0, 0, 0);
+
+      const endOfYesterday = new Date();
+      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      endOfYesterday.setHours(23, 59, 59, 999);
+
+      discrepancy = await this.discrepancyModel.findOne({
+        createdAt: {
+          $gte: startOfYesterday,
+          $lte: endOfYesterday
+        },
+        menu: menu
+      }).sort({ createdAt: -1 }).exec();
     }
+
 
     if (!discrepancy) {
       throw new Error('No stock information available');
@@ -735,9 +791,12 @@ export class OrderService {
   }
 
   async updateOrderStatePending(orderId: string, state) {
+    const restaurantDetails = await this.restaurantDetailsModel.findOne();
+
+    let menu = restaurantDetails.menu;
 
     if (state == 'cancelled') {
-      const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "cancelled", updatedAt: Date.now() }, { new: true }).exec();
+      const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "rejected", updatedAt: Date.now() }, { new: true }).exec();
 
       // refund, if online paid
       if (order?.payment?.paymentMethod == 'online' && order.payment.status == true) {
@@ -755,14 +814,33 @@ export class OrderService {
       }
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const restaurantDetails = await this.restaurantDetailsModel.findOne();
+
+      let menu = restaurantDetails.menu;
+
 
       // Find the most recent discrepancy document (or today's document if it exists)
       let discrepancy = await this.discrepancyModel.findOne({
         createdAt: { $gte: today },
+        menu: menu
       }).exec();
 
       if (!discrepancy) {
-        discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
+        const startOfYesterday = new Date();
+        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+        startOfYesterday.setHours(0, 0, 0, 0);
+
+        const endOfYesterday = new Date();
+        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+        endOfYesterday.setHours(23, 59, 59, 999);
+
+        discrepancy = await this.discrepancyModel.findOne({
+          createdAt: {
+            $gte: startOfYesterday,
+            $lte: endOfYesterday
+          },
+          menu: menu
+        }).sort({ createdAt: -1 }).exec();
       }
 
       if (!discrepancy) {
@@ -798,42 +876,45 @@ export class OrderService {
 
       const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
 
-      const petPoojaOrderBody = {
-        user: await this.userModel.findOne({ _id: order.user }),
-        products: order.products,
-        cgst: order.cgst,
-        sgst: order.sgst,
-        discount: {
-          couponId: order.discount.couponId,
-          discount: order.discount.discount
-        },
-        itemsTotal: order.itemsTotal,
-        grandTotal: order.grandTotal,
-        deliveryFee: order.deliveryFee,
-        platformFee: 15,
-        orderPreference: order.orderPreference,
-        address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
 
-        payment: {
-          paymentMethod: order.payment.paymentMethod,
-          paymentId: order.payment.paymentId,
-          status: order.payment.status
-        },
-        preOrder: {
-          type: order.preOrder.type,
-          orderDate: order.preOrder.orderDate,
-          orderTime: order.preOrder.orderTime
-        },
-        createdAt: order.createdAt,
-        updatedAt: new Date()
-      };
+      if (menu == 'petpooja') {
+        const petPoojaOrderBody = {
+          user: await this.userModel.findOne({ _id: order.user }),
+          products: order.products,
+          cgst: order.cgst,
+          sgst: order.sgst,
+          discount: {
+            couponId: order.discount.couponId,
+            discount: order.discount.discount
+          },
+          itemsTotal: order.itemsTotal,
+          grandTotal: order.grandTotal,
+          deliveryFee: order.deliveryFee,
+          platformFee: 15,
+          orderPreference: order.orderPreference,
+          address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
 
-      const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
+          payment: {
+            paymentMethod: order.payment.paymentMethod,
+            paymentId: order.payment.paymentId,
+            status: order.payment.status
+          },
+          preOrder: {
+            type: order.preOrder.type,
+            orderDate: order.preOrder.orderDate,
+            orderTime: order.preOrder.orderTime
+          },
+          createdAt: order.createdAt,
+          updatedAt: new Date()
+        };
 
-      await this.orderModel.findByIdAndUpdate(orderId, {
-        petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
-        updatedAt: Date.now()
-      }, { new: true }).exec();
+        const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
+
+        await this.orderModel.findByIdAndUpdate(orderId, {
+          petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+          updatedAt: Date.now()
+        }, { new: true }).exec();
+      }
     }
 
     const order = await this.orderModel.findOne({ _id: orderId });
@@ -880,7 +961,7 @@ export class OrderService {
     if (state === 'running') {
       queryStates = ['processing', 'ready', 'on the way', 'pending'];
     } else if (state === 'history') {
-      queryStates = ['completed', 'cancelled'];
+      queryStates = ['completed', 'cancelled', 'rejected'];
     } else {
       // If the state doesn't match 'running' or 'history', return an empty array or handle accordingly
       return [];

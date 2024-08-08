@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 import { CartService } from 'src/cart/cart.service';
 import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
+import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 var Razorpay = require('razorpay')
 
 @Injectable()
@@ -17,7 +18,8 @@ export class RazorpayService {
     private configService: ConfigService,
     @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService,
-    @Inject(CartService) private readonly cartService: CartService) { }
+    @Inject(CartService) private readonly cartService: CartService,
+    @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>) { }
 
   async payment(body) {
     // console.log("razorpay body", body)
@@ -161,30 +163,34 @@ export class RazorpayService {
 
 
       }
-      const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
-      // console.log(petPoojaOrder)
+      const restaurantDetails = await this.restaurantDetailsModel.findOne();
+      const menu = restaurantDetails.menu;
+      if (menu == 'petpooja') {
+        const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
+        // console.log(petPoojaOrder)
 
-      // console.log(petPoojaOrder.restID)
+        // console.log(petPoojaOrder.restID)
 
 
-      // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
+        // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
 
-      // order.petPooja.restId = petPoojaOrder?.restID
-      // order['petPooja'].orderId = petPoojaOrder?.orderID
-      // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
-      if (!order.petPooja) {
-        order['petPooja'] = {
-          restId: '',
-          orderId: '',
-          clientOrderId: ''
-        };
+        // order.petPooja.restId = petPoojaOrder?.restID
+        // order['petPooja'].orderId = petPoojaOrder?.orderID
+        // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
+        if (!order.petPooja) {
+          order['petPooja'] = {
+            restId: '',
+            orderId: '',
+            clientOrderId: ''
+          };
+        }
+
+        // Assign values to the properties of petPooja
+
+        order.petPooja.restId = petPoojaOrder?.restID;
+        order.petPooja.orderId = petPoojaOrder?.orderID;
+        order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
       }
-
-      // Assign values to the properties of petPooja
-
-      order.petPooja.restId = petPoojaOrder?.restID;
-      order.petPooja.orderId = petPoojaOrder?.orderID;
-      order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
 
 
 
