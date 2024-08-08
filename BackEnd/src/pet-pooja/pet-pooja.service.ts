@@ -1,3 +1,4 @@
+import { MenuCT } from './../menu/schema/menu.schema';
 import { ConfigAPI } from './../../node_modules/@types/babel__core/index.d';
 import { WishlistService } from './../wishlist/wishlist.service';
 import { Wishlist } from './../wishlist/schemas/wishlist.schema';
@@ -13,6 +14,8 @@ import { Admin } from 'src/auth/schemas/admin.schema';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 import { Discrepancy, StockItem } from './schemas/stock.schema';
+
+import { CategoryCT } from 'src/menu/schema/categoryct.schema';
 
 const getCronInterval = () => {
 
@@ -30,7 +33,9 @@ export class PetPoojaService {
     @InjectModel(Admin.name) private readonly adminModel: Model<Admin>,
     @InjectModel(RestaurantDetails.name) private readonly restaurantModel: Model<RestaurantDetails>,
     @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
-    @InjectModel(StockItem.name) private stockModel: Model<StockItem>
+    @InjectModel(StockItem.name) private stockModel: Model<StockItem>,
+    @InjectModel(MenuCT.name) private menuCTModel: Model<MenuCT>,
+    @InjectModel(CategoryCT.name) private categoryCTModel: Model<CategoryCT>
 
 
   ) { }
@@ -40,9 +45,15 @@ export class PetPoojaService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    let menu = restaurantDetails.menu;
+
+
     // Find or create today's discrepancy document
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
@@ -61,6 +72,7 @@ export class PetPoojaService {
 
       discrepancy = new this.discrepancyModel();
       discrepancy['stockItems'] = res;
+      discrepancy['menu'] = menu
 
     }
 
@@ -94,9 +106,15 @@ export class PetPoojaService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    let menu = restaurantDetails.menu;
+
     // Find or create today's discrepancy document
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
@@ -115,6 +133,7 @@ export class PetPoojaService {
 
       discrepancy = new this.discrepancyModel();
       discrepancy['stockItems'] = res;
+      discrepancy['menu'] = menu
 
     }
     for (let i = 0; i < body.length; i++) {
@@ -140,7 +159,7 @@ export class PetPoojaService {
 
     discrepancy.markModified('stockItems'); // Explicitly mark stockItems as modified
     await discrepancy.save(); // Save the updated discrepancy document to persist changes
-
+    console.log("resadmina", discrepancy.stockItems.length)
     return discrepancy.stockItems;
 
   }
@@ -149,9 +168,14 @@ export class PetPoojaService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    let menu = restaurantDetails.menu;
+
     // Find or create today's discrepancy document
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
@@ -171,7 +195,7 @@ export class PetPoojaService {
 
       discrepancy = new this.discrepancyModel();
       discrepancy['stockItems'] = res;
-
+      discrepancy['menu'] = menu
     }
     for (let i = 0; i < body.length; i++) {
       const stockItemDto = body[i];
@@ -236,9 +260,14 @@ export class PetPoojaService {
   async getStock() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    let menu = restaurantDetails.menu;
+
 
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
@@ -254,7 +283,8 @@ export class PetPoojaService {
         createdAt: {
           $gte: startOfYesterday,
           $lte: endOfYesterday
-        }
+        },
+        menu: menu
       }).sort({ createdAt: -1 }).exec();
     }
 
@@ -273,6 +303,7 @@ export class PetPoojaService {
       // console.log("called")
       return res;
     }
+    console.log(discrepancy.stockItems.length)
     return discrepancy.stockItems;
   }
 
@@ -317,7 +348,14 @@ export class PetPoojaService {
       if (!keyword) {
         return []
       }
-      const result = await this.connection.collection('items').find(keyword).toArray();
+      let result;
+      if (restaurantDetails.menu == 'petpooja') {
+        result = await this.connection.collection('items').find(keyword).toArray();
+      }
+      else {
+
+        result = await this.menuCTModel.find(keyword)
+      }
       // console.log('Search results:', result);
       return result;
     } catch (error) {
@@ -326,7 +364,7 @@ export class PetPoojaService {
     }
   }
 
-  async getItemById(id, user) {
+  async getItemByIdss(id, user) {
     try {
       const restaurantDetails = await this.restaurantModel.findOne();
       if (!restaurantDetails) {
@@ -367,6 +405,88 @@ export class PetPoojaService {
 
 
       return { ...itemDetail[0], feedback }; // Return the first (and only) document
+
+    } catch (error) {
+      console.error('Error fetching item details:', error);
+      throw error;
+    }
+  }
+  async getItemById(id, user) {
+    try {
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        throw new HttpException('Restaurant details not found', 404);
+      }
+      if (!restaurantDetails.isOpen) {
+        // return new HttpException('restaurant is not open', 450);
+        return { restaurantStatus: false }
+      }
+
+
+      const feedback = await this.feedbackService.getRating(id)
+
+      if (restaurantDetails.menu == 'petpooja') {
+
+        const itemDetail = await this.connection.collection('items').aggregate([
+          { $match: { itemid: id } },
+          {
+            $lookup: {
+              from: 'wishlists',
+              let: { itemid: '$itemid' },
+              pipeline: [
+                { $match: { $expr: { $and: [{ $eq: ['$itemId', '$$itemid'] }, { $eq: ['$user', new mongoose.Types.ObjectId(user)] }] } } }
+              ],
+              as: 'isWishlist'
+            }
+          },
+          {
+            $addFields: {
+              isWishlist: { $cond: { if: { $gt: [{ $size: '$isWishlist' }, 0] }, then: true, else: false } }
+            }
+          },
+          // Optionally remove the isWishlist array if needed
+          { $project: { isWishlist: 1, itemid: 1, itemallowvariation: 1, itemrank: 1, item_categoryid: 1, item_ordertype: 1, item_packingcharges: 1, itemallowaddon: 1, itemaddonbasedon: 1, item_favorite: 1, ignore_taxes: 1, ignore_discounts: 1, in_stock: 1, cuisine: 1, variation_groupname: 1, variation: 1, addon: 1, is_recommend: 1, itemname: 1, item_attributeid: 1, itemdescription: 1, minimumpreparationtime: 1, price: 1, active: 1, item_image_url: 1, item_tax: 1, gst_type: 1 } }
+        ]).toArray();
+
+        if (itemDetail.length === 0) {
+          console.log('No matching items found for itemId:', id);
+          return null;
+        }
+
+
+        return { ...itemDetail[0], feedback };
+      } // Return the first (and only) document
+      else {
+        const itemDetail = await this.menuCTModel.aggregate([
+          { $match: { itemid: id } },
+          {
+            $lookup: {
+              from: 'wishlists',
+              let: { itemid: '$itemid' },
+              pipeline: [
+                { $match: { $expr: { $and: [{ $eq: ['$itemId', '$$itemid'] }, { $eq: ['$user', new mongoose.Types.ObjectId(user)] }] } } }
+              ],
+              as: 'isWishlist'
+            }
+          },
+          {
+            $addFields: {
+              isWishlist: { $cond: { if: { $gt: [{ $size: '$isWishlist' }, 0] }, then: true, else: false } }
+            }
+          },
+          // Optionally remove the isWishlist array if needed
+          { $project: { isWishlist: 1, itemid: 1, item_categoryid: 1, itemname: 1, itemdescription: 1, price: 1, item_image_url: 1 } }
+        ])
+
+        if (itemDetail.length === 0) {
+          console.log('No matching items found for itemId:', id);
+          return null;
+        }
+
+
+        return { ...itemDetail[0], feedback };
+
+      }
 
     } catch (error) {
       console.error('Error fetching item details:', error);
@@ -433,8 +553,25 @@ export class PetPoojaService {
       }
 
       // Retrieve categories and items
-      const categories = await this.connection.collection('categories').find().toArray();
-      const items = await this.connection.collection('items').find().toArray();
+      let categories;
+      let items;
+
+      if (restaurantDetails.menu == 'petpooja') {
+        categories = await this.connection.collection('categories').find().toArray();
+        items = await this.connection.collection('items').find().toArray();
+
+      }
+      else {
+        categories = await this.categoryCTModel.find();
+        items = await this.menuCTModel.find()
+
+      }
+
+
+
+
+
+
       // const [categories, items] = await Promise.all([
       //   this.connection.collection('categories').find().toArray(),
       //   this.connection.collection('items').find().toArray()
@@ -466,13 +603,32 @@ export class PetPoojaService {
       if (!restaurantDetails.isOpen) {
         return { restaurantStatus: false };
       }
+      let categories;
+      let items;
+      let discrepancyStockItems;
 
-      // Retrieve categories and items
-      const [categories, items, discrepancyStockItems] = await Promise.all([
-        this.connection.collection('categories').find().toArray(),
-        this.connection.collection('items').find().toArray(),
-        this.getStock(), // Call getStock to retrieve discrepancy data
-      ]);
+      if (restaurantDetails.menu == 'petpooja') {
+        [categories, items, discrepancyStockItems] = await Promise.all([
+          this.connection.collection('categories').find().toArray(),
+          this.connection.collection('items').find().toArray(),
+          this.getStock(), // Call getStock to retrieve discrepancy data
+        ]);
+
+      }
+      else {
+
+
+
+
+
+
+        // Retrieve categories and items
+        [categories, items, discrepancyStockItems] = await Promise.all([
+          this.categoryCTModel.find(),
+          this.menuCTModel.find(),
+          this.getStock(), // Call getStock to retrieve discrepancy data
+        ]);
+      }
       const categoryMap = categories.reduce((map, category) => {
         map[category.categoryid] = category;
         return map;
@@ -491,6 +647,7 @@ export class PetPoojaService {
           item_categoryid: item.item_categoryid,
           itemstockquantity,
         };
+
       });
 
 
@@ -508,6 +665,8 @@ export class PetPoojaService {
         return result;
       }, {});
 
+      // console.log(groupedItems)
+
       return groupedItems;
 
 
@@ -517,6 +676,7 @@ export class PetPoojaService {
         categories,
         items: itemsWithStock,
       };
+
     } catch (error) {
       // Handle specific known errors
       if (error instanceof HttpException) {

@@ -19,9 +19,14 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { MenuModule } from './menu/menu.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'), // Adjust the path to your static files
+    }),
     // Load environment variables from .env file and make them globally available
     ConfigModule.forRoot({
       envFilePath: '.env',
@@ -31,7 +36,7 @@ import { MenuModule } from './menu/menu.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const mongoUrl = configService.get<string>('MONGO_URL_LOCAL');
+        const mongoUrl = configService.get<string>('MONGO_URL');
         if (!mongoUrl) {
           throw new Error('MONGO_URL is not defined in the environment variables');
         }

@@ -16,6 +16,12 @@ export class MenuController {
   }
 
 
+  @Post()
+  @UseInterceptors(FileInterceptor('file'))
+  createCategory(@Body() body, @UploadedFile() file: Express.Multer.File) {
+    return this.menuService.createCategory(body, file)
+  }
+
 
 
 }

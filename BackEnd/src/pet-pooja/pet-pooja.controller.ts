@@ -44,7 +44,9 @@ export class PetPoojaController {
   @Get('menu')
   fetchMenu(): any {
     // console.log("request")
-    return this.petPoojaService.menu()
+    const res = this.petPoojaService.menu()
+
+    return res;
   }
 
   @Get('fetchMenu')
@@ -63,7 +65,7 @@ export class PetPoojaController {
   //   return this.petPoojaService.saveOrder(body)
   // }
   @Post('updateData')
-  @UseGuards(AuthGuard('admin-jwt'))
+  // @UseGuards(AuthGuard('admin-jwt'))
   async updateData() {
     try {
       // console.log("nissar called")

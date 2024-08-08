@@ -15,12 +15,15 @@ import { FeedbackModule } from 'src/feedback/feedback.module';
 import { Used, UsedSchema } from 'src/coupon/schemas/used.schema';
 import { Discrepancy, DiscrepancySchema } from 'src/pet-pooja/schemas/stock.schema';
 import { FeesSchema } from './schemas/fees.schema';
+import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/restaurant.schema';
+import { MenuCT, MenuCTSchema } from 'src/menu/schema/menu.schema';
+import { CategoryCT, CategoryCTSchema } from 'src/menu/schema/categoryct.schema';
 
 
 
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }]), CartModule, CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule)],
+  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: MenuCT.name, schema: MenuCTSchema }, { name: CategoryCT.name, schema: CategoryCTSchema }]), CartModule, CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule),],
   providers: [OrderService],
   controllers: [OrderController],
   exports: [OrderService]

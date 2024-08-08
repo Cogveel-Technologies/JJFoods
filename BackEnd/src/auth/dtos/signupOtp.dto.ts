@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsNumber, IsString, IsPhoneNumber } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, IsPhoneNumber, Min, Max } from 'class-validator';
 
 
 export class SignupOtpDto {
@@ -11,8 +11,13 @@ export class SignupOtpDto {
   emailId: string;
 
 
-  @IsString()
+  // @IsString()
+  // @IsNotEmpty()
+  // phoneNumber: string;
   @IsNotEmpty()
-  phoneNumber: string;
+  @IsNumber()
+  @Min(1000000000)
+  @Max(9999999999)
+  phoneNumber: number;
 
 }

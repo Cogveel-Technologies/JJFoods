@@ -1,23 +1,36 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type MenuDocument = HydratedDocument<Menu>;
+export type MenuCTDocument = HydratedDocument<MenuCT>;
 
 @Schema()
-export class Menu {
-  @Prop()
-  itemName: string;
+export class MenuCT {
+  @Prop({ unique: [true, 'duplicate id entered'] })
+  itemid: string;
 
   @Prop()
-  price: number;
+  item_categoryid: string;
 
   @Prop()
-  imageUrl: string;
+  itemname: string;
+
 
   @Prop()
-  description: string;
+  itemdescription: string;
+
+
+  @Prop()
+  price: string;
+
+
+
+  @Prop()
+  item_image_url: string;
 
 
 }
 
-export const MenuSchema = SchemaFactory.createForClass(Menu);
+
+
+
+export const MenuCTSchema = SchemaFactory.createForClass(MenuCT);

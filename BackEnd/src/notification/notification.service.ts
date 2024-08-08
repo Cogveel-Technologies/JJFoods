@@ -160,4 +160,51 @@ export class NotificationService {
       throw new error("error");
     }
   };
+
+  async orderAccepted(userId) {
+
+    try {
+      // Fetch all registered drivers
+      const user = await this.userModel.findOne({ _id: userId });
+
+      // Collect all driver device tokens
+      const deviceToken = user.deviceToken
+      const deviceTokens = Array.isArray(user.deviceToken) ? user.deviceToken : [user.deviceToken];
+
+
+      // Define the notification payload
+      const notificationPayload = {
+        notification: {
+          title: "Your order has been accepted",
+          body: "Order accepted",
+          // You can add more fields here for customization, such as icons, sounds, etc.
+        },
+        // Define any data you want to send along with the notification
+        data: {
+          order: "accepted", // Include other booking details as needed
+        }
+      };
+
+      // Send the notification to all device tokens
+      const response = await admin.messaging().sendMulticast({
+        tokens: deviceTokens,
+        ...notificationPayload,
+      });
+
+
+
+      // Check the response for successes and failures
+      // if (response.failureCount > 0) {
+      //     console.error('Failed to send notifications to some devices:', response.responses);
+      // }
+
+      return ({
+        message: 'Push notifications sent successfully',
+        response
+      });
+    } catch (error) {
+      console.error(error);
+      throw new error("error");
+    }
+  };
 }

@@ -44,7 +44,7 @@ export class Order {
   @Prop()
   itemsTotal: number;
 
-  @Prop({ default: 'pending', enum: ['pending', 'processing', 'ready', 'on the way', 'completed', 'cancelled'] })
+  @Prop({ default: 'pending', enum: ['pending', 'processing', 'ready', 'on the way', 'completed', 'cancelled', 'rejected'] })
   state: string;
 
   // @Prop({ default: 'processing', enum: ['processing', 'ready', 'on the way'] })

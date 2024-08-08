@@ -208,6 +208,8 @@ export class AuthService {
       if (!isPasswordMatch) {
         throw new UnauthorizedException('Invalid credentials');
       }
+      admin.deviceToken = body?.deviceToken
+      await admin.save()
 
       const token = this.jwtService.sign({ id: admin._id });
 
@@ -216,7 +218,8 @@ export class AuthService {
         emailId: admin.emailId,
         name: admin.name,
         phoneNumber: admin.phoneNumber,
-        role: admin.role
+        role: admin.role,
+
       };
 
       return { token, adminDetails };
@@ -306,7 +309,7 @@ export class AuthService {
         "emailId": updatedUser.emailId,
         "name": updatedUser.name,
         "phoneNumber": updatedUser.phoneNumber,
-        "imageUrl": updatedUser.imageUrl
+        "imageUrl": updatedUser?.imageUrl
       };
     } catch (error) {
       // Handle errors
@@ -336,17 +339,84 @@ export class AuthService {
 
 
   // }
+
+  async restaurantMenuStatus() {
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails) {
+      await this.restaurantModel.create({ menu: "cogveel" });
+      await this.restaurantStatus(); // Await the recursive call
+      return this.getRestaurantStatus();
+    }
+    restaurantDetails?.menu == "petpooja" ? restaurantDetails.menu = "cogveel" : restaurantDetails.menu = "petpooja";
+
+    await restaurantDetails.save();
+
+
+  }
   async restaurantStatus() {
     try {
       const restaurantDetails = await this.restaurantModel.findOne();
       if (!restaurantDetails) {
-        await this.restaurantModel.create({ isOpen: true });
+        await this.restaurantModel.create({ isOpen: true, menu: "cogveel" });
         await this.restaurantStatus(); // Await the recursive call
         return this.getRestaurantStatus();
       }
       restaurantDetails?.isOpen ? restaurantDetails.isOpen = false : restaurantDetails.isOpen = true;
 
       await restaurantDetails.save();
+
+      // petpooja store
+      // if (restaurantDetails.menu == 'petpooja') {
+      //   const url = 'https://internal_or_external_url_address.com/update_store_status';
+      //   let storeStatus;
+
+      //   restaurantDetails.isOpen ? storeStatus = 1 : storeStatus = 0;
+
+      //   // Get the current date and time
+      //   const now = new Date();
+
+      //   // Calculate tomorrow's date
+      //   const tomorrow = new Date(now);
+      //   tomorrow.setDate(tomorrow.getDate() + 1);
+
+      //   // Set the time to 9:00 AM
+      //   tomorrow.setHours(9, 0, 0, 0);
+
+      //   // Format the date to your desired string format
+      //   const formattedDate = tomorrow.toISOString().replace('T', ' ').split('.')[0];
+
+      //   // console.log(formattedDate); // Output will be in the format YYYY-MM-DD 09:00:00
+
+
+      //   const data = `{
+      //     "restID": "pt90esg5" ,
+      //     "store_status": "${storeStatus}",
+      //     "turn_on_time": "${formattedDate}",
+      //     "reason": "on/off"
+      // }`;
+      //   // Define headers
+      //   const headers = new Headers();
+      //   headers.append('Content-Type', 'application/json');
+
+      //   // Make the fetch request
+      //   const response = await fetch(url, {
+      //     method: 'POST',
+      //     headers: headers,
+      //     body: JSON.stringify(data),
+      //   });
+      //   if (response.ok) {
+
+      //     const responseData = await response.json();
+      //     // return responseData;
+
+
+
+
+      //   } else {
+      //     // Handle errors
+      //     throw new Error('Error making fetch request');
+      //   }
+      // }
       if (!restaurantDetails.isOpen) {
         await this.notificationService.sendPushNotificationsToUsers1();
       } else {
@@ -378,9 +448,61 @@ export class AuthService {
   //   }
 
   // }
+  async getRestaurantMenuStatus() {
+    const restaurantDetails = await this.restaurantModel.findOne();
+    if (!restaurantDetails) {
+      await this.restaurantModel.create({ menu: 'cogveel' });
+      return {
+        menu: "cogveel"
+      };
+    }
+    return {
+      menu: restaurantDetails?.menu
+    };
+
+  }
   async getRestaurantStatus() {
     try {
+
+
       const restaurantDetails = await this.restaurantModel.findOne();
+
+      //petpooja store status
+      // if (restaurantDetails.menu == 'petpooja') {
+      //   const url = 'https://internal_or_external_url_address.com/get_store_status';
+
+      //   const data = `{
+      //     "restID": "pt90esg5" 
+
+      // }`;
+      //   // Define headers
+      //   const headers = new Headers();
+      //   headers.append('Content-Type', 'application/json');
+
+      //   // Make the fetch request
+      //   const response = await fetch(url, {
+      //     method: 'POST',
+      //     headers: headers,
+      //     body: JSON.stringify(data),
+      //   });
+      //   if (response.ok) {
+
+      //     const responseData = await response.json();
+      //     // return responseData;
+      //     if (responseData.store_status == "1") {
+      //       return { state: true }
+      //     }
+      //     return { state: false }
+
+
+
+
+      //   } else {
+      //     // Handle errors
+      //     throw new Error('Error making fetch request');
+      //   }
+
+      // }
       if (!restaurantDetails) {
         await this.restaurantModel.create({ isOpen: true });
         return {

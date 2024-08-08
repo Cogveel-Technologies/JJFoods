@@ -38,6 +38,9 @@ export const StockItemSchema = SchemaFactory.createForClass(StockItem);
 export class Discrepancy {
   @Prop({ type: [StockItemSchema], default: [] })
   stockItems: StockItem[];
+  
+  @Prop()
+  menu : string ;
 
 
 }
