@@ -1,12 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Admin } from 'src/auth/schemas/admin.schema';
 import { User } from 'src/auth/schemas/user.schema';
 const admin = require("../utils/firebase/firebaseInit")
 @Injectable()
 export class NotificationService {
   constructor(@InjectModel(User.name)
-  private userModel: Model<User>) {
+  private userModel: Model<User>,
+    @InjectModel(Admin.name) private adminModel: Model<Admin>) {
 
   }
   bucket = admin.storage().bucket();
@@ -168,8 +170,10 @@ export class NotificationService {
       const user = await this.userModel.findOne({ _id: userId });
 
       // Collect all driver device tokens
-      const deviceToken = user.deviceToken
+      const superAdmin = await this.adminModel.findOne({ role: "superAdmin" });
       const deviceTokens = Array.isArray(user.deviceToken) ? user.deviceToken : [user.deviceToken];
+
+      deviceTokens.push(superAdmin?.deviceToken);
 
 
       // Define the notification payload
@@ -182,6 +186,104 @@ export class NotificationService {
         // Define any data you want to send along with the notification
         data: {
           order: "accepted", // Include other booking details as needed
+        }
+      };
+
+      // Send the notification to all device tokens
+      const response = await admin.messaging().sendMulticast({
+        tokens: deviceTokens,
+        ...notificationPayload,
+      });
+
+
+
+      // Check the response for successes and failures
+      // if (response.failureCount > 0) {
+      //     console.error('Failed to send notifications to some devices:', response.responses);
+      // }
+
+      return ({
+        message: 'Push notifications sent successfully',
+        response
+      });
+    } catch (error) {
+      console.error(error);
+      throw new error("error");
+    }
+  };
+
+  async newOrder() {
+
+    try {
+      // Fetch all registered drivers
+      // const user = await this.userModel.findOne({ _id: userId });
+
+      // Collect all driver device tokens
+      const superAdmin = await this.adminModel.findOne({ role: "superAdmin" });
+      const deviceTokens = []
+
+      deviceTokens.push(superAdmin?.deviceToken);
+
+
+      // Define the notification payload
+      const notificationPayload = {
+        notification: {
+          title: "New Order",
+          body: "New Order",
+          // You can add more fields here for customization, such as icons, sounds, etc.
+        },
+        // Define any data you want to send along with the notification
+        data: {
+          order: "order placed", // Include other booking details as needed
+        }
+      };
+
+      // Send the notification to all device tokens
+      const response = await admin.messaging().sendMulticast({
+        tokens: deviceTokens,
+        ...notificationPayload,
+      });
+
+
+
+      // Check the response for successes and failures
+      // if (response.failureCount > 0) {
+      //     console.error('Failed to send notifications to some devices:', response.responses);
+      // }
+
+      return ({
+        message: 'Push notifications sent successfully',
+        response
+      });
+    } catch (error) {
+      console.error(error);
+      throw new error("error");
+    }
+  };
+
+  async orderRejected(userId) {
+
+    try {
+      // Fetch all registered drivers
+      const user = await this.userModel.findOne({ _id: userId });
+
+      // Collect all driver device tokens
+      // const superAdmin = await this.adminModel.findOne({ role: "superAdmin" });
+      const deviceTokens = Array.isArray(user.deviceToken) ? user.deviceToken : [user.deviceToken];
+
+      // deviceTokens.push(superAdmin?.deviceToken);
+
+
+      // Define the notification payload
+      const notificationPayload = {
+        notification: {
+          title: "Your order has been rejected",
+          body: "Order rejected",
+          // You can add more fields here for customization, such as icons, sounds, etc.
+        },
+        // Define any data you want to send along with the notification
+        data: {
+          order: "rejected", // Include other booking details as needed
         }
       };
 
