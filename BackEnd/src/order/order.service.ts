@@ -18,6 +18,7 @@ import { Fees, FeesDocument } from './schemas/fees.schema';
 import { MenuCT } from 'src/menu/schema/menu.schema';
 import { CategoryCT } from 'src/menu/schema/categoryct.schema';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
+import { NotificationService } from '../notification/notification.service';
 
 
 const { ObjectId } = require('mongodb');
@@ -31,6 +32,8 @@ export class OrderService {
     @InjectModel(Coupon.name) private couponModel: Model<Coupon>,
     @Inject(CouponService)
     private readonly couponService: CouponService,
+    @Inject(NotificationService)
+    private readonly notificationService: NotificationService,
     @Inject(forwardRef(() => PetPoojaService))
     private readonly petPoojaService: PetPoojaService,
     @Inject(RazorpayService) private readonly razorpayService: RazorpayService,
@@ -80,7 +83,7 @@ export class OrderService {
     let state: string;
     switch (status) {
       case -1:
-        state = 'cancelled';
+        state = 'rejected';
         break;
       case 1:
       case 2:
@@ -118,7 +121,7 @@ export class OrderService {
     ).exec();
 
     // Check if cancelled, then refund
-    if (state == 'cancelled') {
+    if (state == 'rejected') {
       const order = await this.orderModel.findOne({ 'petPooja.orderId': orderID });
 
       if (order?.discount?.couponId) {
@@ -667,7 +670,9 @@ export class OrderService {
       }
     }
     else {
-      await this.cartService.removeCart({ userId: order.user })
+      await this.cartService.removeCart({ userId: order.user });
+      await this.notificationService.newOrder()
+
 
       return order
     }
@@ -864,6 +869,8 @@ export class OrderService {
       discrepancy.markModified('stockItems');
       await discrepancy.save();
 
+      await this.notificationService.orderRejected(order.user)
+
 
 
 
@@ -875,7 +882,7 @@ export class OrderService {
 
 
       const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
-
+      await this.notificationService.orderAccepted(order.user)
 
       if (menu == 'petpooja') {
         const petPoojaOrderBody = {

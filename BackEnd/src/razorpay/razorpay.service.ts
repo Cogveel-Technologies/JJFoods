@@ -9,6 +9,7 @@ import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 import { CartService } from 'src/cart/cart.service';
 import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
+import { NotificationService } from 'src/notification/notification.service';
 var Razorpay = require('razorpay')
 
 @Injectable()
@@ -19,7 +20,8 @@ export class RazorpayService {
     @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService,
     @Inject(CartService) private readonly cartService: CartService,
-    @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>) { }
+    @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>,
+    @Inject(NotificationService) private readonly notificationService: NotificationService,) { }
 
   async payment(body) {
     // console.log("razorpay body", body)
@@ -165,32 +167,33 @@ export class RazorpayService {
       }
       const restaurantDetails = await this.restaurantDetailsModel.findOne();
       const menu = restaurantDetails.menu;
-      if (menu == 'petpooja') {
-        const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
-        // console.log(petPoojaOrder)
+      await this.notificationService.newOrder()
+      // if (menu == 'petpooja') {
+      //   const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
+      //   // console.log(petPoojaOrder)
 
-        // console.log(petPoojaOrder.restID)
+      //   // console.log(petPoojaOrder.restID)
 
 
-        // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
+      //   // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
 
-        // order.petPooja.restId = petPoojaOrder?.restID
-        // order['petPooja'].orderId = petPoojaOrder?.orderID
-        // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
-        if (!order.petPooja) {
-          order['petPooja'] = {
-            restId: '',
-            orderId: '',
-            clientOrderId: ''
-          };
-        }
+      //   // order.petPooja.restId = petPoojaOrder?.restID
+      //   // order['petPooja'].orderId = petPoojaOrder?.orderID
+      //   // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
+      //   if (!order.petPooja) {
+      //     order['petPooja'] = {
+      //       restId: '',
+      //       orderId: '',
+      //       clientOrderId: ''
+      //     };
+      //   }
 
-        // Assign values to the properties of petPooja
+      //   // Assign values to the properties of petPooja
 
-        order.petPooja.restId = petPoojaOrder?.restID;
-        order.petPooja.orderId = petPoojaOrder?.orderID;
-        order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
-      }
+      //   order.petPooja.restId = petPoojaOrder?.restID;
+      //   order.petPooja.orderId = petPoojaOrder?.orderID;
+      //   order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
+      // }
 
 
 
@@ -220,16 +223,30 @@ export class RazorpayService {
     // stock schema decrease quanitity
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Find the most recent discrepancy document (or today's document if it exists)
+    const restaurantDetails = await this.restaurantDetailsModel.findOne()
+    const menu = restaurantDetails.menu;
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
-      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
-    }
+      const startOfYesterday = new Date();
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      startOfYesterday.setHours(0, 0, 0, 0);
 
+      const endOfYesterday = new Date();
+      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      endOfYesterday.setHours(23, 59, 59, 999);
+
+      discrepancy = await this.discrepancyModel.findOne({
+        createdAt: {
+          $gte: startOfYesterday,
+          $lte: endOfYesterday
+        },
+        menu: menu
+      }).sort({ createdAt: -1 }).exec();
+    }
     if (!discrepancy) {
       throw new Error('No stock information available');
     }
@@ -276,16 +293,30 @@ export class RazorpayService {
     }
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Find the most recent discrepancy document (or today's document if it exists)
+    const restaurantDetails = await this.restaurantDetailsModel.findOne()
+    const menu = restaurantDetails.menu;
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
+      menu: menu
     }).exec();
 
     if (!discrepancy) {
-      discrepancy = await this.discrepancyModel.findOne().sort({ createdAt: -1 }).exec();
-    }
+      const startOfYesterday = new Date();
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      startOfYesterday.setHours(0, 0, 0, 0);
 
+      const endOfYesterday = new Date();
+      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      endOfYesterday.setHours(23, 59, 59, 999);
+
+      discrepancy = await this.discrepancyModel.findOne({
+        createdAt: {
+          $gte: startOfYesterday,
+          $lte: endOfYesterday
+        },
+        menu: menu
+      }).sort({ createdAt: -1 }).exec();
+    }
     if (!discrepancy) {
       throw new Error('No stock information available');
     }
