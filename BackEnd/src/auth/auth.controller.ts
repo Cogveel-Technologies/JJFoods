@@ -191,7 +191,7 @@ export class AuthController {
   @Post('/addAddress')
   @UseGuards(AuthGuard('user-jwt'))
   addAddress(@Body() addressDto: AddressDto) {
-    console.log(addressDto)
+    // console.log(addressDto)
     return this.authService.addAddress(addressDto);
   }
 
@@ -211,7 +211,7 @@ export class AuthController {
   @Put('/updateAddress/:id')
   @UseGuards(AuthGuard('user-jwt'))
   updateAddress(@Body() updateAddressDto: UpdateAddressDto, @Param('id') id: string) {
-    console.log(updateAddressDto)
+    // console.log(updateAddressDto)
     return this.authService.updateAddress(updateAddressDto, id);
   }
 
