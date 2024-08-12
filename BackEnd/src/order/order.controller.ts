@@ -91,7 +91,7 @@ export class OrderController {
     //completed or processing
     // console.log(body)
     const res = await this.orderService.getOrdersByCustomerId(body.userId, body.state);
-    // console.log(res)
+    // console.log(res.length)
     return res
   }
 

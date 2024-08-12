@@ -14,6 +14,7 @@ export class SignupOtpDto {
   // @IsString()
   // @IsNotEmpty()
   // phoneNumber: string;
+  @Transform(({ value }) => parseInt(value))
   @IsNotEmpty()
   @IsNumber()
   @Min(1000000000)

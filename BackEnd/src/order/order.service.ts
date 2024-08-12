@@ -631,6 +631,7 @@ export class OrderService {
 
       order = new this.orderModel(orderBody);
       await order.save();
+
     }
 
     if (order.payment.paymentMethod === "online") {

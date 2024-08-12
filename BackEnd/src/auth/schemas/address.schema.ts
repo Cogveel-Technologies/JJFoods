@@ -25,7 +25,13 @@ export class Address {
   address3: string;
 
   @Prop()
+  pinCode: string;
+
+  @Prop()
   addressType: string;
+
+  @Prop()
+  placeId: string;
 
   @Prop()
   isDefault: boolean;

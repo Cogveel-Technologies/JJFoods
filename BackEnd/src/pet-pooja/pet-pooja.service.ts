@@ -159,7 +159,7 @@ export class PetPoojaService {
 
     discrepancy.markModified('stockItems'); // Explicitly mark stockItems as modified
     await discrepancy.save(); // Save the updated discrepancy document to persist changes
-    console.log("resadmina", discrepancy.stockItems.length)
+    // console.log("resadmina", discrepancy.stockItems.length)
     return discrepancy.stockItems;
 
   }
@@ -303,7 +303,7 @@ export class PetPoojaService {
       // console.log("called")
       return res;
     }
-    console.log(discrepancy.stockItems.length)
+    // console.log(discrepancy.stockItems.length)
     return discrepancy.stockItems;
   }
 
