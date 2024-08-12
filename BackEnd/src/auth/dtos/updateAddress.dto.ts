@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer"
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator"
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Max, Min } from "class-validator"
 
 
 
@@ -29,8 +29,16 @@ export class UpdateAddressDto {
   @IsString()
   @IsNotEmpty()
   addressType: string;
+  @Length(6, 6, { message: 'Pin code must be exactly 6 characters long' })
+  @IsString()
+  @IsNotEmpty()
+  pinCode: string;
+
+  @IsString()
+  @IsOptional()
+  placeId: string;
 
   @IsBoolean()
-  isDefault:boolean ;
+  isDefault: boolean;
 
 }

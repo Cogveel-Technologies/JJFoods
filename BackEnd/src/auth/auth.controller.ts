@@ -45,6 +45,7 @@ export class AuthController {
   superAdminLogin(@Body() body: AdminLoginDto) {
     // console.log(body)
     const res = this.authService.superAdminLogin(body);
+    // console.log(res)
     return res;
   }
 
