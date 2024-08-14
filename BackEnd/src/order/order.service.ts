@@ -404,7 +404,13 @@ export class OrderService {
     return { orderData, revenueGraph, todayData: todayData.data, todaysOrders: todayData.todaysOrders }
   }
   async getRevenueGraph() {
-    const orders = await this.orderModel.find({ state: 'completed' }).exec();
+    // const orders = await this.orderModel.find({ state: 'completed' }).exec();
+    const currentYear = new Date().getFullYear();
+
+    const orders = await this.orderModel.find({
+      state: 'completed',
+      createdAt: { $gte: new Date(`${currentYear}-01-01`), $lt: new Date(`${currentYear + 1}-01-01`) }
+    }).exec();
 
     const monthlyRevenue = Array(12).fill(0);
 
@@ -442,8 +448,13 @@ export class OrderService {
 
     // const userCartDocument = await this.cartModel.findOne({ user: userId })
     const FeesDocument = await this.feeModel.findOne()
-    const deliveryFee = FeesDocument?.deliveryFee || 0;
+
+    // let deliveryFee = FeesDocument?.deliveryFee || 0;
+    let deliveryFee;
+    deliveryFee = (orderPreference == 'Deliver to my Address') ? FeesDocument?.deliveryFee : 0;
     const platformFee = FeesDocument?.platformFee || 0;
+
+
 
     let discount = 0;
 

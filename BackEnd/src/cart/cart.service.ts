@@ -127,7 +127,8 @@ export class CartService {
     let discount = 0;
     const feeDocument = await this.feesModel.findOne();
 
-    let deliveryFee = feeDocument?.deliveryFee || 0;
+    // let deliveryFee = feeDocument?.deliveryFee || 0;
+    let deliveryFee = 0;
     if (body?.discount) {
       discount = body?.discount
     }
