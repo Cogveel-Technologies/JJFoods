@@ -371,11 +371,14 @@ export class RazorpayService {
       // "receipt": "refund 1234"
     })
     // console.log("refund response", refundResponse)
-
-    order.payment.refund = true;
-    order.payment.refundId = refundResponse.id
-    order.payment.refundDate = refundResponse.created_at;
-    await order.save()
+    if (refundResponse?.error) {
+      order.payment.refund = false;
+    } else {
+      order.payment.refund = true;
+      order.payment.refundId = refundResponse.id
+      order.payment.refundDate = refundResponse.created_at;
+      await order.save()
+    }
     // const url = 'https://api.razorpay.com/v1/payments/' + paymentId + '/refund';
     // const data = {
     //   "amount": order.grandTotal,

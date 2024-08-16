@@ -990,6 +990,11 @@ export class OrderService {
     const orders = await this.orderModel.find({ user: userId, state: { $in: queryStates } }).exec();
     // return response;
     for (const order of orders) {
+      if (order?.address) {
+        const address = await this.addressModel.findById(order.address);
+        order.address = address;
+      }
+
       for (const product of order.products) {
         // console.log("789")
 

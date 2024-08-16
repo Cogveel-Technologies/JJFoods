@@ -357,7 +357,24 @@ export class PetPoojaService {
         result = await this.menuCTModel.find(keyword)
       }
       // console.log('Search results:', result);
-      return result;
+      const discrepancystockitems = await this.getStock();
+      const itemsWithStock = result.map(item => {
+        const stockItem = discrepancystockitems.find(stock => stock.itemId === item.itemid);
+        const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+        return {
+          ...item,
+          item_categoryid: item.item_categoryid,
+          itemstockquantity,
+        };
+
+      });
+      // console.log(itemsWithStock)
+      return itemsWithStock
+
+
+
+
     } catch (error) {
       // console.error('Error executing search query:', error);
       return [];
@@ -452,6 +469,21 @@ export class PetPoojaService {
           console.log('No matching items found for itemId:', id);
           return null;
         }
+        const discrepancyitems = await this.getStock()
+
+        const item = discrepancyitems.find((el) => {
+          return el.itemId == itemDetail[0].itemid;
+        })
+        const itemstockquantity = item.quantity - item.used;
+
+        // console.log(itemstockquantity)
+        const itemDetailWithStock = { ...itemDetail[0], itemstockquantity };
+
+
+
+
+
+        return { ...itemDetailWithStock, feedback };
 
 
         return { ...itemDetail[0], feedback };
@@ -483,8 +515,20 @@ export class PetPoojaService {
           return null;
         }
 
+        const discrepancyitems = await this.getStock()
 
-        return { ...itemDetail[0], feedback };
+        const item = discrepancyitems.find((el) => {
+          return el.itemId == itemDetail[0].itemid;
+        })
+        const itemstockquantity = item.quantity - item.used;
+
+        console.log(itemstockquantity)
+        const itemDetailWithStock = { ...itemDetail[0], itemstockquantity };
+
+
+
+
+        return { ...itemDetailWithStock, feedback };
 
       }
 
