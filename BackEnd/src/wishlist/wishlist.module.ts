@@ -9,6 +9,7 @@ import { FeedbackSchema } from 'src/feedback/schemas/feedback.schema';
 import { FeedbackModule } from 'src/feedback/feedback.module';
 import { CartModule } from 'src/cart/cart.module';
 
+
 @Module({
   imports: [MongooseModule.forFeature([{ name: 'User', schema: UserSchema }, {
     name: 'Wishlist', schema: WishlistSchema

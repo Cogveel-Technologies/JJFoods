@@ -7,10 +7,12 @@ import { FeedbackService } from 'src/feedback/feedback.service';
 import { CartService } from 'src/cart/cart.service';
 
 
+
 @Injectable()
 export class WishlistService {
   constructor(@InjectModel(Wishlist.name) private WishlistModel: Model<Wishlist>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService, @Inject(forwardRef(() => FeedbackService)) private readonly feedbackService: FeedbackService,
+
     @Inject(forwardRef(() => CartService)) private readonly cartService: CartService) { }
   // async addItem(body) {
   //   const { userId, itemId } = body;
@@ -96,6 +98,22 @@ export class WishlistService {
         }
       };
     }));
+
+    const dicrepancystockitems = await this.petPoojaService.getStock();
+    const itemsWithStock = wishlistWithRatings.map(item => {
+      const stockItem = dicrepancystockitems.find(stock => stock.itemId === item.itemId);
+      const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+      return {
+        ...item,
+        item_categoryid: item.item_categoryid,
+        itemstockquantity,
+      };
+
+    });
+    // console.log(itemsWithStock)
+    return itemsWithStock
+
 
     return wishlistWithRatings;
 

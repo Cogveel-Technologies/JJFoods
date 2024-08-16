@@ -19,7 +19,9 @@ export class WishlistController {
   @Get('/:userId')
   @UseGuards(AuthGuard('user-jwt'))
   getUserWishlist(@Param('userId') userId) {
-    return this.wishlistService.getUserWishlist(userId)
+    const res = this.wishlistService.getUserWishlist(userId)
+    // console.log(res);
+    return res;
   }
 
   @Post('remove')
