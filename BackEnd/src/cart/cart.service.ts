@@ -182,7 +182,7 @@ export class CartService {
     // const feesDoc = await this.feesModel.findOne()
     const platformFee = feeDocument?.platformFee || 0;
 
-    const grandTotal = itemsTotal + cgst + sgst + platformFee - discount + deliveryFee;
+    const grandTotal = Math.round(itemsTotal + cgst + sgst + platformFee - discount + deliveryFee);
 
     const cartLength = await this.getCartNumber(userId)
 

@@ -544,7 +544,14 @@ export class OrderService {
       // }
       const stock = discrepancy.stockItems.find(stockItem => stockItem.itemId === item['itemid']);
 
+
+      ///////////check here
+
+
       if (stock) {
+        if (stock.quantity - stock.used < item.quantity) {
+          throw new Error('Insufficient stock');
+        }
         stock.used += item['quantity'];
       }
 
@@ -569,7 +576,8 @@ export class OrderService {
         discount: discount
       },
       itemsTotal: userCart?.itemsTotal,
-      grandTotal: userCart?.grandTotal?.toFixed(2),
+      // grandTotal: userCart?.grandTotal?.toFixed(2),
+      grandTotal: userCart?.grandTotal ? Math.round(userCart.grandTotal) : undefined,
       deliveryFee: userCart?.deliveryFee,
       platformFee: FeesDocument?.platformFee || 0,
       orderPreference,
@@ -667,7 +675,8 @@ export class OrderService {
       return {
         order: order._id,
         key: this.configService.get<string>('RAZORPAY_ID'),
-        amount: parseFloat(orderBody.grandTotal),
+        // amount: parseFloat(orderBody.grandTotal),
+        amount: orderBody.grandTotal,
         name: "JJFOODS",
         description: "wazwan",
         currency: "INR",
