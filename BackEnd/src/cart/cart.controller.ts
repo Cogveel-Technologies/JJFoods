@@ -35,7 +35,7 @@ export class CartController {
     // console.log(body)
 
     const cart = await this.cartService.getUserCart(userId, body);
-    console.log("response", cart)
+    // console.log("response", cart)
     return cart;
   }
   @Get('cartNumber/:userId')
@@ -43,6 +43,7 @@ export class CartController {
   async getCartNumber(@Param('userId') userId: any) {
 
     const cartNumber = await this.cartService.getCartNumber(userId);
+    // console.log(cartNumber)
     return cartNumber;
   }
 
@@ -67,7 +68,7 @@ export class CartController {
 
 
     const cart = await this.cartService.addQuantity(body);
-
+    // console.log(cart)
     return cart;
   }
 

@@ -994,15 +994,35 @@ export class OrderService {
       // If the state doesn't match 'running' or 'history', return an empty array or handle accordingly
       return [];
     }
+
     // console.log("456")
     // Query the database with the mapped states
     const orders = await this.orderModel.find({ user: userId, state: { $in: queryStates } }).exec();
     // return response;
+    const dicrepancystockitems = await this.petPoojaService.getStock();
     for (const order of orders) {
       if (order?.address) {
         const address = await this.addressModel.findById(order.address);
         order.address = address;
       }
+      ///
+
+      // const itemsWithStock = order.products.map(item => {
+      //   const stockItem = dicrepancystockitems.find(stock => stock.itemId === item.itemId);
+      //   const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+      //   return {
+      //     ...item,
+      //     item_categoryid: item.item_categoryid,
+      //     itemstockquantity,
+      //   };
+
+      // });
+      // console.log(itemsWithStock)
+      // return itemsWithStock
+
+
+      ////
 
       for (const product of order.products) {
         // console.log("789")
@@ -1010,12 +1030,18 @@ export class OrderService {
         const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
         // console.log(item)
         // console.log("912")
+        //
+        const stockItem = dicrepancystockitems.find(stock => stock.itemId === item.itemid);
+        const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0;
+        // console.log(itemstockquantity)
 
 
         if (item) {
-          product.details = item
+          product.details = item;
+          product.details["itemstockquantity"] = itemstockquantity;
 
         }
+
 
         const body = {
           orderId: order._id,
@@ -1037,7 +1063,7 @@ export class OrderService {
 
       }
     }
-    // console.log(orders)
+    // console.log(orders[2].products)
     return orders;
   }
 
