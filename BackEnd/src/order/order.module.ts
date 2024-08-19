@@ -24,7 +24,7 @@ import { NotificationModule } from 'src/notification/notification.module';
 
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: MenuCT.name, schema: MenuCTSchema }, { name: CategoryCT.name, schema: CategoryCTSchema }]), CartModule, CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule), NotificationModule],
+  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: MenuCT.name, schema: MenuCTSchema }, { name: CategoryCT.name, schema: CategoryCTSchema }]), forwardRef(() => CartModule), CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule), NotificationModule],
   providers: [OrderService],
   controllers: [OrderController],
   exports: [OrderService]

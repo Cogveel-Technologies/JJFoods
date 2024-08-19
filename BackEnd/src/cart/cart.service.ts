@@ -1,4 +1,4 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Connection, Model } from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
@@ -18,7 +18,7 @@ export class CartService {
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
     @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>,
     @InjectModel(Fees.name) private feesModel: Model<Fees>,
-    @Inject(PetPoojaService) private readonly petpoojaService: PetPoojaService
+    @Inject(forwardRef(() => PetPoojaService)) private readonly petpoojaService: PetPoojaService
   ) { }
   async bulkAddCart(body) {
     const { userId, products } = body;

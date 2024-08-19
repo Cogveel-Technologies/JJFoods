@@ -19,7 +19,7 @@ export class RazorpayService {
     private configService: ConfigService,
     @InjectModel(Discrepancy.name) private discrepancyModel: Model<Discrepancy>,
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService,
-    @Inject(CartService) private readonly cartService: CartService,
+    @Inject(forwardRef(() => CartService)) private readonly cartService: CartService,
     @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>,
     @Inject(NotificationService) private readonly notificationService: NotificationService,) { }
 

@@ -15,7 +15,7 @@ import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/res
 import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), CartModule, forwardRef(() => AuthModule), NotificationModule],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), forwardRef(() => CartModule), forwardRef(() => AuthModule), NotificationModule],
   providers: [RazorpayService],
   controllers: [RazorpayController],
   exports: [RazorpayService]
