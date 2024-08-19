@@ -27,7 +27,7 @@ const { ObjectId } = require('mongodb');
 export class OrderService {
   constructor(@InjectModel(Order.name) private orderModel: Model<Order>, @InjectModel(Cart.name) private cartModel: Model<Cart>,
     @InjectModel(User.name) private userModel: Model<User>, @InjectModel(Address.name) private addressModel: Model<Address>,
-    @Inject(CartService)
+    @Inject(forwardRef(() => CartService))
     private readonly cartService: CartService,
     @InjectModel(Coupon.name) private couponModel: Model<Coupon>,
     @Inject(CouponService)

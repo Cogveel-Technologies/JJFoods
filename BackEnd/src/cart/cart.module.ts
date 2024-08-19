@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { CartController } from './cart.controller';
 import { CartService } from './cart.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -13,7 +13,7 @@ import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
 
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Cart', schema: CartSchema }, { name: 'User', schema: UserSchema }, { name: 'CartItem', schema: CartItemSchema }, { name: 'Delivery', schema: DeliverySchema }, { name: Admin.name, schema: AdminSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: Fees.name, schema: FeesSchema }]), PetPoojaModule],
+  imports: [MongooseModule.forFeature([{ name: 'Cart', schema: CartSchema }, { name: 'User', schema: UserSchema }, { name: 'CartItem', schema: CartItemSchema }, { name: 'Delivery', schema: DeliverySchema }, { name: Admin.name, schema: AdminSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: Fees.name, schema: FeesSchema }]), forwardRef(() => PetPoojaModule)],
   controllers: [CartController],
   providers: [CartService],
   exports: [CartService]

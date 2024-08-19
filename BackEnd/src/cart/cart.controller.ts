@@ -35,7 +35,7 @@ export class CartController {
     // console.log(body)
 
     const cart = await this.cartService.getUserCart(userId, body);
-    // console.log("response", cart)
+    console.log("response", cart)
     return cart;
   }
   @Get('cartNumber/:userId')
