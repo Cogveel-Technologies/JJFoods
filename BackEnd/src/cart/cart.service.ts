@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import mongoose, { Connection, Model } from 'mongoose';
 import { User } from 'src/auth/schemas/user.schema';
@@ -6,6 +6,7 @@ import { Cart } from './schemas/cart.schema';
 import { Admin } from 'src/auth/schemas/admin.schema';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 import { Fees } from 'src/order/schemas/fees.schema';
+import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 
 
 @Injectable()
@@ -16,7 +17,8 @@ export class CartService {
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
     @InjectModel(Admin.name) private adminModel: Model<Admin>,
     @InjectModel(RestaurantDetails.name) private restaurantModel: Model<RestaurantDetails>,
-    @InjectModel(Fees.name) private feesModel: Model<Fees>
+    @InjectModel(Fees.name) private feesModel: Model<Fees>,
+    @Inject(PetPoojaService) private readonly petpoojaService: PetPoojaService
   ) { }
   async bulkAddCart(body) {
     const { userId, products } = body;
@@ -165,11 +167,36 @@ export class CartService {
     const items = await this.connection.db.collection('items').find({ itemid: { $in: itemIds } }).toArray();
 
     // Add the correct quantity to each item
-    const newData = items.map(item => ({
+    const newDatas = items.map(item => ({
+      itemid: item.itemid,
       ...item,
       quantity: itemIdToQuantityMap[item.itemid],
       totalCost: itemIdToQuantityMap[item.itemid] * item.price,
     }));
+
+    const discrepancystockitems = await this.petpoojaService.getStock();
+    const newData = newDatas.map(item => {
+      const stockItem = discrepancystockitems.find(stock => stock.itemId === item.itemid);
+      const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+      return {
+        ...item,
+
+        itemstockquantity,
+      };
+
+    });
+
+
+
+
+
+
+
+
+
+
+
 
     const itemsTotal = newData.reduce((total, item) => {
       return total + item.totalCost
