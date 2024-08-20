@@ -65,9 +65,9 @@ export class CartService {
   async addCart(body) {
     // console.log(body)
     const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails.isOpen) {
-      return new HttpException('restaurant is not open', 450);
-    }
+    // if (!restaurantDetails.isOpen) {
+    //   return new HttpException('restaurant is not open', 450);
+    // }
     const { userId } = body;
     const { itemId } = body.product;
     const { quantity } = body

@@ -1025,7 +1025,7 @@ export class OrderService {
       ////
 
       for (const product of order.products) {
-        // console.log("789")
+        // console.log(product)
 
         const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
         // console.log(item)

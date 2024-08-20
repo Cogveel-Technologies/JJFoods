@@ -313,9 +313,9 @@ export class PetPoojaService {
   async searchItems(query: string) {
 
     const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails.isOpen) {
-      return new HttpException('restaurant is not open', 450);
-    }
+    // if (!restaurantDetails.isOpen) {
+    //   return new HttpException('restaurant is not open', 450);
+    // }
     // console.log('Search query:', query, typeof query);
     try {
       const sanitizedQuery = query.trim();
@@ -434,10 +434,10 @@ export class PetPoojaService {
       if (!restaurantDetails) {
         throw new HttpException('Restaurant details not found', 404);
       }
-      if (!restaurantDetails.isOpen) {
-        // return new HttpException('restaurant is not open', 450);
-        return { restaurantStatus: false }
-      }
+      // if (!restaurantDetails.isOpen) {
+      //   // return new HttpException('restaurant is not open', 450);
+      //   return { restaurantStatus: false }
+      // }
 
 
       const feedback = await this.feedbackService.getRating(id)
@@ -644,9 +644,9 @@ export class PetPoojaService {
       if (!restaurantDetails) {
         throw new HttpException('Restaurant details not found', 404);
       }
-      if (!restaurantDetails.isOpen) {
-        return { restaurantStatus: false };
-      }
+      // if (!restaurantDetails.isOpen) {
+      //   return { restaurantStatus: false };
+      // }
       let categories;
       let items;
       let discrepancyStockItems;
