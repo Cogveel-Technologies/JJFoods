@@ -112,19 +112,19 @@ export class CartService {
     //   throw new HttpException('restaurant is not open', 450);
     // }
     const restaurantDetails = await this.restaurantModel.findOne();
-    if (!restaurantDetails.isOpen) {
-      return {
-        itemsTotal: 0,
-        cgst: 0,
-        sgst: 0,
-        discount: 0,
-        deliveryFee: 0,
-        grandTotal: 0,
-        newData: [],
-        restaurantStatus: false
-      }
-      // return new HttpException('restaurant is not open', 450);
-    }
+    // if (!restaurantDetails.isOpen) {
+    //   return {
+    //     itemsTotal: 0,
+    //     cgst: 0,
+    //     sgst: 0,
+    //     discount: 0,
+    //     deliveryFee: 0,
+    //     grandTotal: 0,
+    //     newData: [],
+    //     restaurantStatus: false
+    //   }
+    //   // return new HttpException('restaurant is not open', 450);
+    // }
     // console.log("req", userId, body.discount)
     let discount = 0;
     const feeDocument = await this.feesModel.findOne();
@@ -202,9 +202,25 @@ export class CartService {
       return total + item.totalCost
     }, 0)
 
-    const taxes = await this.connection.db.collection('taxes').find().toArray();
-    const cgst = taxes[0].tax * itemsTotal / 100;
-    const sgst = taxes[1].tax * itemsTotal / 100;
+
+    const cgstTax = feeDocument.cgst;
+    const sgstTax = feeDocument.sgst;
+
+    let cgst = cgstTax * itemsTotal / 100;
+    let sgst = sgstTax * itemsTotal / 100;
+
+
+
+    let menu = restaurantDetails.menu;
+    if (menu == 'petpooja') {
+      const taxes = await this.connection.db.collection('taxes').find().toArray();
+      cgst = taxes[0].tax * itemsTotal / 100;
+      sgst = taxes[1].tax * itemsTotal / 100;
+
+
+    }
+
+
 
     // const feesDoc = await this.feesModel.findOne()
     const platformFee = feeDocument?.platformFee || 0;

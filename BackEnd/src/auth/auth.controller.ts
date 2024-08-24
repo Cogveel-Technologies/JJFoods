@@ -80,6 +80,19 @@ export class AuthController {
     return this.authService.restaurantMenuStatus();
   }
 
+  @Put('/updateRestaurantTax')
+  @UseGuards(AuthGuard('admin-jwt'))
+  restaurantTax(@Body() body) {
+    // console.log(body)
+    return this.authService.restaurantTax(body);
+  }
+
+  @Get('/getRestaurantTax')
+  @UseGuards(AuthGuard('admin-jwt'))
+  getRestaurantTax() {
+    // console.log(body)
+    return this.authService.getRestaurantTax();
+  }
   @Get('/getRestaurantStatus')
   async getRestaurantStatus() {
     //to change restaurant and menu status in this api
@@ -90,6 +103,8 @@ export class AuthController {
     // return { state: false }
     return res
   }
+
+
   @Get('/getRestaurantMenuStatus')
   getRestaurantMenuStatus() {
 

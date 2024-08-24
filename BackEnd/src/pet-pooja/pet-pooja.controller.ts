@@ -78,6 +78,12 @@ export class PetPoojaController {
       throw new Error(error.message)
     }
   }
+
+  @Post('/pushmenu')
+  async pushmenu(@Body() body) {
+
+    return this.petPoojaService.pushmenu(body)
+  }
   @Get('search')
   async search(@Query('q') q): Promise<any> {
     // console.log(q)

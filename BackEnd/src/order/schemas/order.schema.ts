@@ -75,7 +75,8 @@ export class Order {
       reason: { type: String },
       refund: { type: Boolean },
       refundId: { type: String },
-      refundDate: { type: String }
+      refundDate: { type: String },
+      refundStatus: { type: String }
     }
 
 
@@ -90,6 +91,7 @@ export class Order {
     refund?: boolean;
     refundId?: string;
     refundDate?: string;
+    refundStatus?: string;
 
   };
   @Prop({

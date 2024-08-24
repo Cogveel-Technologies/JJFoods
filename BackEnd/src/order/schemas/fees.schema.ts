@@ -7,6 +7,12 @@ export type FeesDocument = HydratedDocument<Fees>;
 @Schema()
 export class Fees {
 
+  @Prop()
+  cgst: number;
+
+  @Prop()
+  sgst: number;
+
 
 
 

@@ -50,16 +50,16 @@ export class OrderService {
   ) { }
 
   async setFee(body) {
-    const { deliveryFee, platformFee } = body;
+    const { deliveryFee, platformFee, cgst, sgst } = body;
     const feeDocument = await this.feeModel.findOne();
 
     if (feeDocument) {
       await this.feeModel.findOneAndUpdate(
         { _id: feeDocument._id },
-        { $set: { deliveryFee, platformFee } }
+        { $set: { deliveryFee, platformFee, cgst, sgst } }
       );
     } else {
-      const fee = new this.feeModel({ deliveryFee, platformFee });
+      const fee = new this.feeModel({ deliveryFee, platformFee, cgst, sgst });
       await fee.save();
     }
 
@@ -453,6 +453,9 @@ export class OrderService {
     let deliveryFee;
     deliveryFee = (orderPreference == 'Deliver to my Address') ? FeesDocument?.deliveryFee : 0;
     const platformFee = FeesDocument?.platformFee || 0;
+
+    const cgst = FeesDocument.cgst;
+    const sgst = FeesDocument.sgst;
 
 
 

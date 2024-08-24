@@ -801,13 +801,13 @@ export class PetPoojaService {
 
 
 
-  @Cron(getCronInterval())
-  async handleCron() {
-    // console.log("updated successfully 123")
-    const data = await this.fetchMenu();
-    this.updateDatabase(data)
-    return "updated"
-  }
+  // @Cron(getCronInterval())
+  // async handleCron() {
+  //   // console.log("updated successfully 123")
+  //   const data = await this.fetchMenu();
+  //   this.updateDatabase(data)
+  //   return "updated"
+  // }
   async updateDatabase(data: any) {
     try {
       // Clear existing data and insert new data into respective collections
@@ -842,6 +842,48 @@ export class PetPoojaService {
       // await this.connection.collection('discounts').insertMany(data.discounts);
 
       console.log('Database updated successfully');
+    } catch (error) {
+      console.error('Error updating the database:', error);
+    }
+  }
+
+  async pushmenu(data) {
+    try {
+      // Clear existing data and insert new data into respective collections
+      await this.connection.collection('restaurants').deleteMany({});
+      await this.connection.collection('restaurants').insertMany(data.restaurants);
+
+      await this.connection.collection('ordertypes').deleteMany({});
+      await this.connection.collection('ordertypes').insertMany(data.ordertypes);
+
+      await this.connection.collection('items').deleteMany({});
+      await this.connection.collection('items').insertMany(data.items);
+
+      await this.connection.collection('categories').deleteMany({});
+      await this.connection.collection('categories').insertMany(data.categories);
+
+      // await this.connection.collection('parentcategories').deleteMany({});
+      // await this.connection.collection('parentcategories').insertMany(data.parentcategories);
+
+      await this.connection.collection('variations').deleteMany({});
+      await this.connection.collection('variations').insertMany(data.variations);
+
+      await this.connection.collection('addongroups').deleteMany({});
+      await this.connection.collection('addongroups').insertMany(data.addongroups);
+
+      await this.connection.collection('attributes').deleteMany({});
+      await this.connection.collection('attributes').insertMany(data.attributes);
+
+      await this.connection.collection('taxes').deleteMany({});
+      await this.connection.collection('taxes').insertMany(data.taxes);
+
+      // await this.connection.collection('discounts').deleteMany({});
+      // await this.connection.collection('discounts').insertMany(data.discounts);
+
+      return {
+        "success": "1",
+        "message": "Menu items are successfully listed."
+      }
     } catch (error) {
       console.error('Error updating the database:', error);
     }
@@ -899,9 +941,16 @@ export class PetPoojaService {
 
   async saveOrder(body) {
     const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
+    // console.log("called")
 
     const data = this.mapOrderToApiPayload(body);
+    // console.log("data order", data.orderinfo.OrderInfo.Order)
+    // console.log("data order info", data.orderinfo)
     // console.log("data", data)
+    // console.log("data", data)
+    // console.log("data", data)
+    // console.log("data", data)
+    console.log(JSON.stringify(data))
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -1182,7 +1231,8 @@ export class PetPoojaService {
   private mapOrderToApiPayload(order) {
     const getSafeValue = (value, defaultValue = '') => value !== undefined && value !== null ? value.toString() : defaultValue;
 
-    return {
+    const res =
+    {
       app_key: this.configService.get<string>('PETPOOJA_KEY'),
       app_secret: this.configService.get<string>('PETPOOJA_SECRET'),
       access_token: this.configService.get<string>('PETPOOJA_TOKEN'),
@@ -1336,6 +1386,8 @@ export class PetPoojaService {
         device_type: 'Web',
       },
     };
+    // console.log(res)
+    return res;
   }
 
 

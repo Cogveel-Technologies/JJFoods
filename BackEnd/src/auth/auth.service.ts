@@ -339,6 +339,27 @@ export class AuthService {
 
 
   // }
+  async restaurantTax(body) {
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    restaurantDetails.cgst = body.cgst;
+    restaurantDetails.sgst = body.sgst;
+
+    await restaurantDetails.save();
+
+
+  }
+  async getRestaurantTax() {
+    const restaurantDetails = await this.restaurantModel.findOne();
+
+    return {
+      cgst: restaurantDetails.cgst,
+      sgst: restaurantDetails.sgst
+    }
+
+
+
+  }
 
   async restaurantMenuStatus() {
     const restaurantDetails = await this.restaurantModel.findOne();
