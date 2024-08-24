@@ -9,7 +9,7 @@ export class OrderController {
 
   @Post('/setFee')
   @UseGuards(AuthGuard('admin-jwt'))
-  async setFee(@Body() body: { deliveryFee: string, platformFee: string }) {
+  async setFee(@Body() body: { deliveryFee: string, platformFee: string, cgst: string, sgst: string }) {
     return this.orderService.setFee(body)
   }
 

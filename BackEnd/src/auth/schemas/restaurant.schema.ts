@@ -13,6 +13,14 @@ export class RestaurantDetails {
   @Prop({ enum: ['petpooja', 'cogveel'] })
   menu: 'petpooja' | 'cogveel';
 
+  @Prop()
+  cgst: number;
+
+  @Prop()
+  sgst: number;
+
+
+
 }
 
 export const RestaurantDetailsSchema = SchemaFactory.createForClass(RestaurantDetails);

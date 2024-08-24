@@ -10,7 +10,16 @@ import { CartService } from 'src/cart/cart.service';
 import { Discrepancy } from 'src/pet-pooja/schemas/stock.schema';
 import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 import { NotificationService } from 'src/notification/notification.service';
+
+import { Cron } from '@nestjs/schedule';
+import * as dotenv from 'dotenv';
 var Razorpay = require('razorpay')
+
+const getCronInterval = () => {
+
+  dotenv.config();
+  return process.env.REFUND_TIME
+};
 
 @Injectable()
 export class RazorpayService {
@@ -370,15 +379,19 @@ export class RazorpayService {
       "speed": "optimum",
       // "receipt": "refund 1234"
     })
-    // console.log("refund response", refundResponse)
+    order.payment.refund = false;
+    console.log("refund response", refundResponse)
     if (refundResponse?.error) {
       order.payment.refund = false;
+      order.payment.refundStatus = "failed"
     } else {
       order.payment.refund = true;
       order.payment.refundId = refundResponse.id
       order.payment.refundDate = refundResponse.created_at;
-      await order.save()
+      order.payment.refundStatus = refundResponse.status
+
     }
+    await order.save()
     // const url = 'https://api.razorpay.com/v1/payments/' + paymentId + '/refund';
     // const data = {
     //   "amount": order.grandTotal,
@@ -425,5 +438,23 @@ export class RazorpayService {
     console.log("razorpay response", razorpayResponse)
     return razorpayResponse
 
+  }
+
+  @Cron(getCronInterval())
+  async handleCron() {
+    /// handle refund batch logic here
+
+    // console.log("cron job started")
+    const orders = await this.orderModel.find({
+      "payment.paymentMethod": 'online',
+      "payment.status": true,
+      "payment.refund": false,
+
+      state: { $in: ['cancelled', 'rejected'] }
+    }).exec();
+    // console.log("orders", orders)
+    for (let order of orders) {
+      await this.refund(order._id)
+    }
   }
 }
