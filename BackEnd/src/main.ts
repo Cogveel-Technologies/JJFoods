@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -10,7 +11,10 @@ dotenv.config();
 async function bootstrap() {
   try {
     // Create the NestJS application instance
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      rawBody: true
+    });
+    app.useBodyParser('json', { limit: '10mb' });
 
     // Apply global validation pipe for request validation
     app.useGlobalPipes(new ValidationPipe({
