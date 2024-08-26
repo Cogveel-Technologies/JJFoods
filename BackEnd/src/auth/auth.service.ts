@@ -482,6 +482,74 @@ export class AuthService {
     };
 
   }
+  async updateStoreStatus(body) {
+    try {
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (body.store_status == 0) {
+        restaurantDetails.isOpen = false
+
+      }
+      else {
+        restaurantDetails.isOpen = true
+
+      }
+
+
+
+
+      await restaurantDetails.save();
+
+
+      if (!restaurantDetails.isOpen) {
+        await this.notificationService.sendPushNotificationsToUsers1();
+      } else {
+        await this.notificationService.sendPushNotificationsToUsers2();
+      }
+      return {
+        "http_code": 200,
+        "status": "success",
+        "message": "Store Status updated successfully for store restID"
+      }
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error updating restaurant status:', error);
+
+      // Throw a generic internal server error
+      throw new HttpException('Internal server error', 500);
+    }
+
+
+
+  }
+
+  async getStoreStatus(body) {
+    try {
+
+
+      const restaurantDetails = await this.restaurantModel.findOne();
+
+      let res = restaurantDetails.isOpen ? 1 : 0;
+
+      return {
+        "http_code": 200,
+        "status": "success",
+        "store_status": res,
+        "message": "Store Delivery Status fetched successfully"
+      }
+
+    } catch (error) {
+      // Log the error for debugging purposes
+      console.error('Error fetching restaurant status:', error);
+
+      // Throw a generic internal server error
+      throw new HttpException('Internal server error', 500);
+    }
+
+
+
+
+
+  }
   async getRestaurantStatus() {
     try {
 
