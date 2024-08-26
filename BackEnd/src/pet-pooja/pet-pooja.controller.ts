@@ -79,7 +79,7 @@ export class PetPoojaController {
     }
   }
 
-  @Post('/pushmenu')
+  @Post('/pushmenu_endpoint')
   async pushmenu(@Body() body) {
 
     return this.petPoojaService.pushmenu(body)

@@ -93,6 +93,21 @@ export class AuthController {
     // console.log(body)
     return this.authService.getRestaurantTax();
   }
+
+  @Post('/update_store_status')
+  updateStoreStatus(@Body() body) {
+    return this.authService.updateStoreStatus(body);
+  }
+
+  @Post('/get_store_status')
+  getStoreStatus(@Body() body) {
+    if (body.restID != 'pt90esg5') {
+      throw new Error('invalid restaurant id')
+    }
+
+    return this.authService.getStoreStatus(body)
+  }
+
   @Get('/getRestaurantStatus')
   async getRestaurantStatus() {
     //to change restaurant and menu status in this api
