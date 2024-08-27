@@ -16,6 +16,7 @@ import { RestaurantDetails } from 'src/auth/schemas/restaurant.schema';
 import { Discrepancy, StockItem } from './schemas/stock.schema';
 
 import { CategoryCT } from 'src/menu/schema/categoryct.schema';
+import { Query } from 'nest-access-control';
 
 const getCronInterval = () => {
 
@@ -658,6 +659,7 @@ export class PetPoojaService {
           this.getStock(), // Call getStock to retrieve discrepancy data
         ]);
 
+
       }
       else {
 
@@ -712,6 +714,118 @@ export class PetPoojaService {
       // console.log(groupedItems)
 
       return groupedItems;
+
+
+
+
+      return {
+        categories,
+        items: itemsWithStock,
+      };
+
+    } catch (error) {
+      // Handle specific known errors
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Log the error and return a generic error response
+      console.error('An error occurred in the menu method:', error);
+      throw new HttpException('Internal server error', 500);
+    }
+  }
+  transformData(data) {
+    const transformedData = [];
+
+    for (let key in data) {
+      transformedData.push(data[key])
+
+    }
+
+
+
+    return transformedData;
+  }
+  async paginatedMenu(page) {
+    try {
+      const resPerPage = 10;
+      const currentPage = Number(page) || 1
+      const skip = resPerPage * (currentPage - 1);
+      // Check if the restaurant is open
+      const restaurantDetails = await this.restaurantModel.findOne();
+      if (!restaurantDetails) {
+        throw new HttpException('Restaurant details not found', 404);
+      }
+      // if (!restaurantDetails.isOpen) {
+      //   return { restaurantStatus: false };
+      // }
+      let categories;
+      let items;
+      let discrepancyStockItems;
+
+      if (restaurantDetails.menu == 'petpooja') {
+        [categories, items, discrepancyStockItems] = await Promise.all([
+          this.connection.collection('categories').find().limit(resPerPage).skip(skip).toArray(),
+          this.connection.collection('items').find().toArray(),
+          this.getStock(), // Call getStock to retrieve discrepancy data
+        ]);
+
+        // console.log(categories)
+
+      }
+      else {
+
+
+
+
+
+
+        // Retrieve categories and items
+        [categories, items, discrepancyStockItems] = await Promise.all([
+          this.categoryCTModel.find().limit(resPerPage).skip(skip),
+          this.menuCTModel.find(),
+          this.getStock(), // Call getStock to retrieve discrepancy data
+        ]);
+      }
+      const categoryMap = categories.reduce((map, category) => {
+        map[category.categoryid] = category;
+        return map;
+      }, {});
+
+
+
+
+      // Map itemstockquantity to items using quantity - used
+      const itemsWithStock = items.map(item => {
+        const stockItem = discrepancyStockItems.find(stock => stock.itemId === item.itemid);
+        const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0; // Calculate itemstockquantity
+
+        return {
+          ...item,
+          item_categoryid: item.item_categoryid,
+          itemstockquantity,
+        };
+
+      });
+
+
+      const groupedItems = itemsWithStock.reduce((result, item) => {
+        const categoryid = item.item_categoryid;
+        if (categoryMap[categoryid]) {
+          if (!result[categoryid]) {
+            result[categoryid] = {
+              category: categoryMap[categoryid],
+              items: [],
+            };
+          }
+          result[categoryid].items.push(item);
+        }
+        return result;
+      }, {});
+
+      // console.log(groupedItems)
+      // return groupedItems
+      return this.transformData(groupedItems);
 
 
 
@@ -944,13 +1058,8 @@ export class PetPoojaService {
     // console.log("called")
 
     const data = this.mapOrderToApiPayload(body);
-    // console.log("data order", data.orderinfo.OrderInfo.Order)
-    // console.log("data order info", data.orderinfo)
-    // console.log("data", data)
-    // console.log("data", data)
-    // console.log("data", data)
-    // console.log("data", data)
-    console.log(JSON.stringify(data))
+
+    // console.log("--------", JSON.stringify(data))
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -964,9 +1073,14 @@ export class PetPoojaService {
     if (response.ok) {
       const responseData = await response.json();
       // Process responseData as needed
+      // console.log(responseData)
       return responseData;
     } else {
       // Handle errors
+      return {
+        status: 0
+      }
+
       throw new Error('Error making fetch request');
     }
 
@@ -1228,7 +1342,19 @@ export class PetPoojaService {
 
   // }
 
+  generateOrderId(length = 10) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let orderId = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      orderId += characters[randomIndex];
+    }
+    return orderId;
+  }
+
   private mapOrderToApiPayload(order) {
+    // console.log(order.id)
+
     const getSafeValue = (value, defaultValue = '') => value !== undefined && value !== null ? value.toString() : defaultValue;
 
     const res =
@@ -1258,7 +1384,8 @@ export class PetPoojaService {
           },
           Order: {
             details: {
-              orderID: getSafeValue(order._id),
+              orderID: order.id,
+              // orderID: this.generateOrderId(),
               preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : new Date(order.createdAt).toISOString().split('T')[0],
               preorder_time: getSafeValue(order.preOrder?.orderTime) ? getSafeValue(order.preOrder?.orderTime) : new Date(order.createdAt).toISOString().split('T')[1].split('.')[0],
               service_charge: '0',

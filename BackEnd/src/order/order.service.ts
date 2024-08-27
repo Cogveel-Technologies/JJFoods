@@ -901,15 +901,16 @@ export class OrderService {
 
     }
     else {
+      const order = await this.orderModel.findById(orderId)
 
 
 
 
-      const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
-      await this.notificationService.orderAccepted(order.user)
+
 
       if (menu == 'petpooja') {
         const petPoojaOrderBody = {
+          id: order._id,
           user: await this.userModel.findOne({ _id: order.user }),
           products: order.products,
           cgst: order.cgst,
@@ -941,10 +942,23 @@ export class OrderService {
 
         const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
 
-        await this.orderModel.findByIdAndUpdate(orderId, {
-          petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
-          updatedAt: Date.now()
-        }, { new: true }).exec();
+        if (petPoojaOrder?.status == 0) {
+
+        }
+        else {
+          await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
+          await this.notificationService.orderAccepted(order.user)
+          await this.orderModel.findByIdAndUpdate(orderId, {
+            petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+            updatedAt: Date.now()
+          }, { new: true }).exec();
+        }
+
+
+        // await this.orderModel.findByIdAndUpdate(orderId, {
+        //   petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+        //   updatedAt: Date.now()
+        // }, { new: true }).exec();
       }
     }
 
