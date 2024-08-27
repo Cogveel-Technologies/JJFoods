@@ -55,6 +55,13 @@ export class PetPoojaController {
   }
 
 
+  @Get('paginatedMenu/:page')
+  async paginatedMenu(@Param('page') page) {
+    // console.log(page)
+    return this.petPoojaService.paginatedMenu(page);
+  }
+
+
 
 
 
