@@ -105,7 +105,7 @@ export class Order {
       minimum_delivery_time: { type: String },
       rider_name: { type: String },
       rider_phone_number: { type: String },
-      is_modified: { type: Boolean }
+      is_modified: { type: String }
     }
   })
   petPooja: {
@@ -118,7 +118,7 @@ export class Order {
     minimum_delivery_time?: string,
     rider_name?: string,
     rider_phone_number?: string,
-    is_modified?: boolean
+    is_modified?: string
   }
 
   @Prop({
