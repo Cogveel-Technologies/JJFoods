@@ -82,21 +82,21 @@ export class OrderService {
     // Determine the state based on the status value
     let state: string;
     switch (status) {
-      case -1:
+      case "-1":
         state = 'rejected';
         break;
-      case 1:
-      case 2:
-      case 3:
+      case "1":
+      case "2":
+      case "3":
         state = 'processing';
         break;
-      case 4:
+      case "4":
         state = 'on the way';
         break;
-      case 5:
+      case "5":
         state = 'ready';
         break;
-      case 10:
+      case "10":
         state = 'completed';
         break;
       default:
@@ -105,7 +105,7 @@ export class OrderService {
 
     // Update the petPooja fields and the state in your database
     await this.orderModel.updateOne(
-      { 'petPooja.orderId': orderID, 'petPooja.restId': restID },
+      { 'petPooja.clientOrderId': orderID, 'petPooja.restId': restID },
       {
         $set: {
           'petPooja.status': status,
