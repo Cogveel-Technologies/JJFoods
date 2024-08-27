@@ -122,7 +122,7 @@ export class OrderService {
 
     // Check if cancelled, then refund
     if (state == 'rejected') {
-      const order = await this.orderModel.findOne({ 'petPooja.orderId': orderID });
+      const order = await this.orderModel.findOne({ 'petPooja.clientOrderId': orderID });
 
       if (order?.discount?.couponId) {
         await this.usedModel.deleteOne({ code: order.discount.couponId, user: order.user });
