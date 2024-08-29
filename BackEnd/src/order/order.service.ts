@@ -824,6 +824,8 @@ export class OrderService {
 
     let menu = restaurantDetails.menu;
 
+
+
     if (state == 'cancelled') {
       const order = await this.orderModel.findByIdAndUpdate(orderId, { state: "rejected", updatedAt: Date.now() }, { new: true }).exec();
 
@@ -901,7 +903,9 @@ export class OrderService {
 
     }
     else {
-      const order = await this.orderModel.findById(orderId)
+      const order = await this.orderModel.findById(orderId);
+
+
 
 
 
@@ -909,10 +913,20 @@ export class OrderService {
 
 
       if (menu == 'petpooja') {
+
+        const productsArray = order.products;
+        productsArray.map(async (product) => {
+
+          const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+          product["name"] = item.itemname;
+
+        })
+
+
         const petPoojaOrderBody = {
           id: order._id,
           user: await this.userModel.findOne({ _id: order.user }),
-          products: order.products,
+          products: productsArray,
           cgst: order.cgst,
           sgst: order.sgst,
           discount: {
@@ -922,9 +936,10 @@ export class OrderService {
           itemsTotal: order.itemsTotal,
           grandTotal: order.grandTotal,
           deliveryFee: order.deliveryFee,
-          platformFee: 15,
+          platformFee: order.platformFee,
           orderPreference: order.orderPreference,
           address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
+
 
           payment: {
             paymentMethod: order.payment.paymentMethod,
