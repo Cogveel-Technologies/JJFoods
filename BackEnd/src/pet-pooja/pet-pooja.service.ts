@@ -748,7 +748,7 @@ export class PetPoojaService {
   }
   async paginatedMenu(page) {
     try {
-      const resPerPage = 10;
+      const resPerPage = 66;
       const currentPage = Number(page) || 1
       const skip = resPerPage * (currentPage - 1);
       // Check if the restaurant is open
@@ -1059,7 +1059,7 @@ export class PetPoojaService {
 
     const data = this.mapOrderToApiPayload(body);
 
-    // console.log("--------", JSON.stringify(data))
+    console.log("--------", JSON.stringify(data))
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -1351,6 +1351,75 @@ export class PetPoojaService {
     }
     return orderId;
   }
+  convertTo24HourFormat(timeStr) {
+    // Split the time string into parts
+    let [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':');
+
+    // Convert hours to 24-hour format
+    if (modifier === 'PM' && hours !== '12') {
+      hours = parseInt(hours, 10) + 12;
+    } else if (modifier === 'AM' && hours === '12') {
+      hours = '00';
+    }
+
+    // Ensure hours and minutes are two digits
+    hours = hours.toString().padStart(2, '0');
+    minutes = minutes.padStart(2, '0');
+
+    // Add seconds as 00
+    let seconds = '00';
+
+    return `${hours}:${minutes}:${seconds}`;
+  }
+
+  getCurrentTime(): string {
+    // Get the current date and time
+    const now: Date = new Date();
+
+    // Get hours, minutes, and seconds
+    let hours: number | string = now.getHours();
+    let minutes: number | string = now.getMinutes();
+    let seconds: number | string = now.getSeconds();
+
+    // Ensure hours, minutes, and seconds are two digits
+    hours = hours.toString().padStart(2, '0');
+    minutes = minutes.toString().padStart(2, '0');
+    seconds = seconds.toString().padStart(2, '0');
+
+    return `${hours}:${minutes}:${seconds}`;
+  }
+  getCurrentDate(): string {
+    // Get the current date
+    const now: Date = new Date();
+
+    // Get year, month, and day
+    const year: number = now.getFullYear();
+    let month: number | string = now.getMonth() + 1; // Months are zero-based, so add 1
+    let day: number | string = now.getDate();
+
+    // Ensure month and day are two digits
+    month = month.toString().padStart(2, '0');
+    day = day.toString().padStart(2, '0');
+
+    return `${year}:${month}:${day}`;
+  }
+
+  orderPreference(x) {
+    if (x == 'Deliver to my Address') {
+      return 'H'
+    }
+    else if (x == 'Eat at Restaurant') {
+      return 'D'
+    }
+    else {
+      return 'P'
+    }
+
+
+
+  }
+
 
   private mapOrderToApiPayload(order) {
     // console.log(order.id)
@@ -1386,47 +1455,47 @@ export class PetPoojaService {
             details: {
               orderID: order.id,
               // orderID: this.generateOrderId(),
-              preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : new Date(order.createdAt).toISOString().split('T')[0],
-              preorder_time: getSafeValue(order.preOrder?.orderTime) ? getSafeValue(order.preOrder?.orderTime) : new Date(order.createdAt).toISOString().split('T')[1].split('.')[0],
-              service_charge: '0',
-              sc_tax_amount: '0',
+              preorder_time: getSafeValue(order.preOrder?.orderTime) ? this.convertTo24HourFormat(order.preOrder?.orderTime) : this.getCurrentTime(),
+              preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : this.getCurrentDate(),
+              // service_charge: '0',
+              // sc_tax_amount: '0',
               delivery_charges: getSafeValue(order.deliveryFee, '0'),
-              dc_tax_amount: getSafeValue(order.sgst, '0'),
-              dc_gst_details: [
-                {
-                  gst_liable: 'vendor',
-                  amount: getSafeValue(order.sgst, '0'),
-                },
-                {
-                  gst_liable: 'restaurant',
-                  amount: '0',
-                },
-              ],
-              packing_charges: getSafeValue(order.platformFee, '0'),
-              pc_tax_amount: getSafeValue(order.cgst, '0'),
-              pc_gst_details: [
-                {
-                  gst_liable: 'vendor',
-                  amount: getSafeValue(order.cgst, '0'),
-                },
-                {
-                  gst_liable: 'restaurant',
-                  amount: '0',
-                },
-              ],
-              order_type: order.orderPreference === 'delivery' ? 'D' : 'H',
+              // dc_tax_amount: getSafeValue(order.sgst, '0'),
+              // dc_gst_details: [
+              //   {
+              //     gst_liable: 'vendor',
+              //     amount: getSafeValue(order.sgst, '0'),
+              //   },
+              //   {
+              //     gst_liable: 'restaurant',
+              //     amount: '0',
+              //   },
+              // ],
+              // packing_charges: getSafeValue(order.platformFee, '0'),//this is the container charge
+              // pc_tax_amount: getSafeValue(order.cgst, '0'),
+              // pc_gst_details: [
+              //   {
+              //     gst_liable: 'vendor',
+              //     amount: getSafeValue(order.cgst, '0'),
+              //   },
+              //   {
+              //     gst_liable: 'restaurant',
+              //     amount: '0',
+              //   },
+              // ],
+              order_type: this.orderPreference(order.orderPreference),
               ondc_bap: 'JJFOODS',
-              advanced_order: 'N',
-              payment_type: order.payment?.paymentMethod === 'credit_card' ? 'Online' : 'COD',
+              advanced_order: order.preOrder.type ? 'Y' : 'N',
+              payment_type: order.payment?.paymentMethod === 'online' ? 'ONLINE' : 'COD',
               table_no: '',
-              no_of_persons: '0',
-              discount_total: getSafeValue(order.discount?.discount, '0'),
-              tax_total: getSafeValue(order.cgst + order.sgst, '0'),
+              no_of_persons: '1',
+              // discount_total: getSafeValue(order.discount?.discount, '0'),
+              tax_total: getSafeValue(order.cgst + order.sgst + order.platformFee + order.deliveryFee, '0'),
               discount_type: 'F',// dynamic
               total: getSafeValue(order.grandTotal, '0'),
               description: '',
               created_on: new Date(order.createdAt).toISOString(),
-              enable_delivery: order.orderPreference === 'delivery' ? 1 : 0,
+              enable_delivery: order.orderPreference === 'Deliver to my Address' ? 1 : 0,
               min_prep_time: 20,
               callback_url: this.configService.get<string>('WEBHOOKURL'),
               collect_cash: getSafeValue(order.grandTotal, '0'),
@@ -1436,30 +1505,30 @@ export class PetPoojaService {
           OrderItem: {
             details: order.products.map((product) => ({
               id: getSafeValue(product.itemId),
-              name: 'Product Name',
-              gst_liability: 'vendor',
-              item_tax: [
-                {
-                  id: '11213',
-                  name: 'CGST',
-                  amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
-                },
-                {
-                  id: '20375',
-                  name: 'SGST',
-                  amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
-                },
-              ],
-              item_discount: '0',
+              name: product.name,
+              // gst_liability: 'vendor',
+              // item_tax: [
+              //   {
+              //     id: '11213',
+              //     name: 'CGST',
+              //     amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
+              //   },
+              //   {
+              //     id: '20375',
+              //     name: 'SGST',
+              //     amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
+              //   },
+              // ],
+              // item_discount: '0',
               price: getSafeValue(product.price),
               final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
               quantity: getSafeValue(product.quantity),
-              description: '',
-              variation_name: '',
-              variation_id: '',
-              AddonItem: {
-                details: [],
-              },
+              // description: '',
+              // variation_name: '',
+              // variation_id: '',
+              // AddonItem: {
+              //   details: [],
+              // },
             })),
           },
           Tax: {
@@ -1469,7 +1538,7 @@ export class PetPoojaService {
                 title: 'CGST',
                 type: 'P',
                 price: '2.5',
-                tax: '5.9',
+                tax: getSafeValue(order.cgst, '0'),
                 restaurant_liable_amt: '0.00',
               },
               {
@@ -1477,31 +1546,25 @@ export class PetPoojaService {
                 title: 'SGST',
                 type: 'P',
                 price: '2.5',
-                tax: '5.9',
+                tax: getSafeValue(order.sgst, '0'),
                 restaurant_liable_amt: '0.00',
               },
               {
                 id: '21866',
-                title: 'CGST',
-                type: 'P',
-                price: '9',
-                tax: '25.11',
-                restaurant_liable_amt: '25.11',
+                title: 'Platform Fee',
+                type: 'F',
+                price: order.platformFee,
+                tax: order.platformFee,
+                restaurant_liable_amt: '0.00',
               },
-              {
-                id: '21867',
-                title: 'SGST',
-                type: 'P',
-                price: '9',
-                tax: '25.11',
-                restaurant_liable_amt: '25.11',
-              },
+              // 
+
             ],
           },
           Discount: {
             details: [
               {
-                id: '362',//dynamic
+                id: order.discount?.couponId || "0",//dynamic
                 title: 'Discount',
                 type: 'F',//dynamic
                 price: getSafeValue(order.discount?.discount, '0'),
