@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "963430158016",
+    "project_id": "push-db5ef",
+    "storage_bucket": "push-db5ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963430158016:android:030a230bcfd9050ee4a725",
+        "android_client_info": {
+          "package_name": "com.jjfoods"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJLcnHMekh29aeFzv0DWI1uQO-MMP-VY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
