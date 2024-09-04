@@ -132,11 +132,14 @@ const MyOrders = () => {
                   <Text style={[textVariants.buttonTextHeading, { color: Colors.black }]}>Your Order is :  </Text>
                   <Text style={[textVariants.buttonTextHeading, { color: Colors.primary, }]}>{item?.state}</Text>
                 </View>
+
               </View>
               <View style={styles.detailsView}>
-                {/* <Text style={[textVariants.buttonTextHeading, { color: Colors.primary }]}>
-                  {item.payment.status === true ? "Paid" : "COD"}
-                </Text> */}
+                <View style={{ flexDirection: 'row' }}>
+                  <Text style={[textVariants.buttonTextHeading, { color: Colors.black }]}>Order Type :  </Text>
+                  <Text style={[textVariants.buttonTextHeading, { color: Colors.primary, }]}>{item?.preOrder?.type ? 'Pre Order' : 'Normal'}</Text>
+                </View>
+
                 <Text style={[textVariants.buttonTextHeading, { color: Colors.gray, }]}> ₹ {item?.grandTotal}</Text>
               </View>
               {/* Cancel Order Button */}

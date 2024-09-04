@@ -88,7 +88,7 @@ const FullOrderDetails = ({ route }) => {
             {/* Address Details */}
 
             {item?.orderPreference == 'Deliver to my Address' ? (<View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 12, marginBottom: 5, }}>
-              <Text style={[textVariants.buttonTextHeading, { color: Colors.black, }]}>Order Address : </Text>
+              <Text style={[textVariants.buttonTextHeading, { color: Colors.black, }]}>Delivery Address : </Text>
               <View style={{ flexDirection: 'row' }}>
                 <Text style={[textVariants.buttonTextHeading, { color: Colors.primary, width: dimensions.vw * 38 }]}>{item?.address?.address1}</Text>
               </View>
@@ -97,7 +97,8 @@ const FullOrderDetails = ({ route }) => {
             {/* Order Date and Time */}
             {item?.preOrder?.type &&
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 12, marginBottom: 5, }}>
-                <Text style={[textVariants.buttonTextHeading, { color: Colors.black, }]}>Order Date :</Text>
+                <Text style={[textVariants.buttonTextHeading, { color: Colors.black }]}>Delivery Date and Time:</Text>
+
                 <View style={{ flexDirection: 'row' }}>
                   <Text style={[textVariants.buttonTextHeading, { color: Colors.primary }]}>{item?.preOrder?.orderDate} -- </Text>
                   <Text style={[textVariants.buttonTextHeading, { color: Colors.primary }]}>{item?.preOrder?.orderTime}</Text>
@@ -105,12 +106,15 @@ const FullOrderDetails = ({ route }) => {
               </View>
             }
 
+            <View style={styles.dashedLine} />
             {/* Order Tracking or Order Status */}
             <View style={{ marginHorizontal: 12, marginVertical: 18, }}>
-              <Text style={[textVariants.buttonTextHeading, { color: Colors.black, }]}>Your Order Status :</Text>
+              <Text style={[textVariants.buttonTextHeading, { color: Colors.black, }]}>Your Order Status</Text>
               <OrderStatus OrderStatus={item?.state} />
             </View>
           </View>
+
+
 
           {/* Tracking Button */}
           <View style={{ marginHorizontal: 26, marginTop: dimensions.vw * 5 }}>
