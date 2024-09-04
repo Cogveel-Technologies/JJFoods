@@ -53,12 +53,12 @@ const OrderDetails = () => {
                 {item?.preOrder?.type &&
                   <View>
                     <View style={styles.Content}>
-                      <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>Order Date</Text>
+                      <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8, width: dimensions.vw * 35 }]}>Order Delivery Date</Text>
                       <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3.3 }, item?.preOrder?.type && { color: 'green', fontWeight: "900" }]}>{item?.preOrder?.orderDate}</Text>
                     </View>
 
                     <View style={styles.Content}>
-                      <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>Order Time</Text>
+                      <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8, width: dimensions.vw * 35 }]}>Order Delivery Time</Text>
                       <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3.3 }, item?.preOrder?.type && { color: 'green', fontWeight: "900" }]}>{item?.preOrder?.orderTime}</Text>
                     </View>
                   </View>}
@@ -84,7 +84,7 @@ const OrderDetails = () => {
                 </View>
 
                 {item?.address && <View style={styles.Content}>
-                  <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>Delivery Location </Text>
+                  <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8, width: dimensions.vw * 35 }]}>Order Delivery Location </Text>
                   <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3.3, width: dimensions.vw * 40, }]}>
                     {item?.address?.address1},{'\n'}
                     {item?.address?.address2},{'\n'}
@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     paddingBottom: 20,
     paddingStart: 16,
+
 
   }
 })
