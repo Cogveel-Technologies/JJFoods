@@ -66,34 +66,34 @@ const Orders = () => {
           </View> */}
 
           {/* Order Type Selection */}
-          <View style={styles.radioContainer}>
-            <RadioButton.Group
-              onValueChange={value => setOrderType(value)}
-              value={orderType}
-            >
-              {/* Orders button */}
-              <Card style={styles.card} onPress={() => handleCardPress('Normal')}>
-                <View style={{ flexDirection: "row", alignItems: 'center' }}>
-                  <RadioButton value="Normal" />
-                  <Text style={[
-                    textVariants.textSubHeading,
-                    { fontSize: orderType === 'Normal' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'Normal' ? Colors.primary : Colors.black }
-                  ]}>Orders</Text>
-                </View>
-              </Card>
 
-              {/* PreOrders button */}
-              <Card style={styles.card} onPress={() => handleCardPress('PreOrder')}>
-                <View style={{ flexDirection: "row", alignItems: 'center' }}>
-                  <RadioButton value="PreOrder" />
-                  <Text style={[
-                    textVariants.textSubHeading,
-                    { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
-                  ]}>PreOrders</Text>
-                </View>
-              </Card>
-            </RadioButton.Group>
-          </View>
+          <RadioButton.Group
+            onValueChange={value => setOrderType(value)}
+            value={orderType}
+          >
+            {/* Orders button */}
+            <CCard style={styles.card} onPress={() => handleCardPress('Normal')}>
+              <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                <RadioButton value="Normal" />
+                <Text style={[
+                  textVariants.textSubHeading,
+                  { fontSize: orderType === 'Normal' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'Normal' ? Colors.primary : Colors.black }
+                ]}>Orders</Text>
+              </View>
+            </CCard>
+
+            {/* PreOrders button */}
+            <CCard style={styles.card} onPress={() => handleCardPress('PreOrder')}>
+              <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                <RadioButton value="PreOrder" />
+                <Text style={[
+                  textVariants.textSubHeading,
+                  { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
+                ]}>PreOrders</Text>
+              </View>
+            </CCard>
+          </RadioButton.Group>
+
 
           {/* Order Details with status */}
           <View style={styles.orderStatusView}>
@@ -137,15 +137,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 12,
   },
-  radioContainer: {
-    // flexDirection: 'row',
-    // justifyContent: 'center',
-    // marginBottom: 20,
-  },
   card: {
     backgroundColor: Colors.whiteSecondary,
-    padding: 5,
-    borderRadius: 20,
-    marginVertical: 5,
+    marginHorizontal: 0,
+    padding: 4,
+    marginTop: 5,
+
   }
 });
