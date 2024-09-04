@@ -1,14 +1,15 @@
-import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
-import LinearHeader from '../../../../components/LinearHeader'
-import ReactNativeSegmentedControlTab from 'react-native-segmented-control-tab'
-import { Colors } from '../../../../theme/Colors'
-import { textVariants } from '../../../../theme/StyleVarients'
-import OrderListWithStatus from './OrderListWithStatus'
-import dimensions from '../../../../theme/Dimensions'
-import { RadioButton } from 'react-native-paper'
-import { moderateScale } from 'react-native-size-matters'
-import { Background } from '../../../../theme/CongfigrationStyle'
+import { ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import LinearHeader from '../../../../components/LinearHeader';
+import ReactNativeSegmentedControlTab from 'react-native-segmented-control-tab';
+import { Colors } from '../../../../theme/Colors';
+import { textVariants } from '../../../../theme/StyleVarients';
+import OrderListWithStatus from './OrderListWithStatus';
+import dimensions from '../../../../theme/Dimensions';
+import { Card, RadioButton } from 'react-native-paper';
+import { moderateScale } from 'react-native-size-matters';
+import { Background } from '../../../../theme/CongfigrationStyle';
+import CCard from '../../../../components/CCard';
 
 const Orders = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,6 +24,10 @@ const Orders = () => {
 
   const [orderType, setOrderType] = useState('Normal');
 
+  const handleCardPress = (value) => {
+    setOrderType(value);
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <ImageBackground
@@ -34,7 +39,7 @@ const Orders = () => {
         <View style={{ marginHorizontal: 16, marginTop: dimensions.vh * 5, flex: 1 }}>
 
           {/* 4 segmented Buttons  */}
-          <View >
+          <View>
             <ReactNativeSegmentedControlTab
               values={['Pending', 'Processing', 'OnTheWay', 'Completed', 'Canceled']}
               selectedIndex={segmentedButtonIndex}
@@ -51,7 +56,7 @@ const Orders = () => {
             />
           </View>
 
-          {/* Search  Bar  */}
+          {/* Search Bar */}
           {/* <View style={{ marginBottom: dimensions.vh * 1 }} >
             <CSearchBar
               placeholder="Search"
@@ -66,45 +71,29 @@ const Orders = () => {
               onValueChange={value => setOrderType(value)}
               value={orderType}
             >
-              <View style={styles.radioOption}>
-                <RadioButton value="Normal" />
-                <Text style={[
-                  textVariants.textSubHeading,
-                  { fontSize: orderType === 'Normal' ? dimensions.vw * 4 : dimensions.vw * 3.5, color: orderType === 'Normal' ? Colors.primary : Colors.black }
-                ]}>Orders</Text>
-              </View>
+              {/* Orders button */}
+              <Card style={styles.card} onPress={() => handleCardPress('Normal')}>
+                <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                  <RadioButton value="Normal" />
+                  <Text style={[
+                    textVariants.textSubHeading,
+                    { fontSize: orderType === 'Normal' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'Normal' ? Colors.primary : Colors.black }
+                  ]}>Orders</Text>
+                </View>
+              </Card>
 
-              <View style={styles.radioOption}>
-                <RadioButton value="PreOrder" />
-                <Text style={[
-                  textVariants.textSubHeading,
-                  { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4 : dimensions.vw * 3.5, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
-                ]}>PreOrders</Text>
-              </View>
+              {/* PreOrders button */}
+              <Card style={styles.card} onPress={() => handleCardPress('PreOrder')}>
+                <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                  <RadioButton value="PreOrder" />
+                  <Text style={[
+                    textVariants.textSubHeading,
+                    { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
+                  ]}>PreOrders</Text>
+                </View>
+              </Card>
             </RadioButton.Group>
           </View>
-
-
-
-
-          {/* <CCard style={{ marginHorizontal: 0, marginTop: 8, marginBottom: 20, padding: 0 }}>
-            <TouchableOpacity
-              style={styles.itemContainer}
-            // onPress={handleCODPress}
-            >
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={[textVariants.textSubHeading, { color: Colors.black }]}>
-                  PreOrders
-                </Text>
-              </View>
-              <RadioButton
-                value="cashOnDelivery"
-                // status={selectedPaymentMethod === 'COD' ? 'checked' : 'unchecked'}
-                // onPress={handleCODPress}
-                color={Colors.primary}
-              />
-            </TouchableOpacity>
-          </CCard> */}
 
           {/* Order Details with status */}
           <View style={styles.orderStatusView}>
@@ -149,14 +138,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   radioContainer: {
-    flexDirection: 'row',
+    // flexDirection: 'row',
     // justifyContent: 'center',
     // marginBottom: 20,
   },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 10,
-  },
-
+  card: {
+    backgroundColor: Colors.whiteSecondary,
+    padding: 5,
+    borderRadius: 20,
+    marginVertical: 5,
+  }
 });
