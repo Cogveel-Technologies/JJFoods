@@ -4,8 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { Colors } from '../theme/Colors'
 import Home from '../domains/app/screens/home/Home'
 import Orders from '../domains/app/screens/orders/Orders'
-import ChatScreen from '../domains/app/screens/chat/ChatScreen'
 import ProductsMenu from '../domains/app/screens/productsMenu/ProductsMenu'
+import dimensions from '../theme/Dimensions'
 
 
 
@@ -56,11 +56,11 @@ const BottomTabNavigator = () => {
       // options={{ headerShown: false, }}
       />
 
-      <BottomTabs.Screen
+      {/* <BottomTabs.Screen
         name='ProductsMenu'
         component={ProductsMenu}
       // options={{ headerShown: false, }}
-      />
+      /> */}
 
       {/* <BottomTabs.Screen
         name='Chat'

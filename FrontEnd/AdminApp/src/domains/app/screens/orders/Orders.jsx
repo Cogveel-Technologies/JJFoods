@@ -6,7 +6,7 @@ import { Colors } from '../../../../theme/Colors';
 import { textVariants } from '../../../../theme/StyleVarients';
 import OrderListWithStatus from './OrderListWithStatus';
 import dimensions from '../../../../theme/Dimensions';
-import { Card, Icon, RadioButton } from 'react-native-paper';
+import { Icon, RadioButton } from 'react-native-paper';
 import { moderateScale } from 'react-native-size-matters';
 import { Background } from '../../../../theme/CongfigrationStyle';
 import CCard from '../../../../components/CCard';
