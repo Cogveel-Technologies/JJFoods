@@ -1,11 +1,54 @@
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
+# JJFoods
+
+JJFoods is a comprehensive food ordering app built with [**React Native**](https://reactnative.dev). The app allows users to browse through various categories of food items, manage their cart, wishlist, and orders, and update their profiles. It also includes features like Firebase push notifications, guest access, and more.
+
+
 # Getting Started
 
 >**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
 
+## Features
+
+- **Food Categories:** Browse and explore different categories of food items.
+- **Wishlist:** Save your favorite items for easy access later.
+- **Cart Management:** Add items to your cart and proceed to checkout.
+- **Order History:** View your past orders.
+- **Running Order Details:** Track your current orders in real-time.
+- **Profile Management:** Update your profile details and preferences.
+- **Saved Addresses:** Manage and use already added addresses for orders.
+- **Address Management:** 
+  - **Add New Address:** Manually enter a new address or pick it from the map.
+  - **Search Address:** Use the search bar to find and add new addresses.
+  - **Edit or Delete Address:** Modify or remove saved addresses.
+- **Map Screen:** Visualize and select locations directly on an interactive map.
+- **Coupons:** View and apply collected coupons to your orders.
+- **Account Settings:** Customize your account settings.
+- **App Feedback:** Provide feedback directly within the app.
+- **About Us:** Learn more about JJFoods.
+- **Terms & Conditions & Privacy Policy:** Read the legal terms and policies.
+- **Logout:** Securely log out of the app.
+- **Guest System:** Access the app as a guest with limited functionalities.
+- **Firebase Push Notifications:** Receive real-time updates and notifications about your orders and special offers.
+
+
+## Installation
+
+To set up the project locally:
+
+1. **Clone the repository**:
+   ```bash
+   https://github.com/Cogveel-Technologies/JJFoods.git
+   cd FrontEnd,
+   cd JJApp
+
 ## Step 1: Start the Metro Server
 
+Open the Terminal in your Project , After installing node modules, using  'npm install' then 
+
+run this commond in your terminal to run your project ### npx react-native run-android 
+                                          #OR
 First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
 
 To start Metro, run the following command from the _root_ of your React Native project:
@@ -16,7 +59,8 @@ npm start
 
 # OR using Yarn
 yarn start
-```
+
+
 
 ## Step 2: Start your Application
 
