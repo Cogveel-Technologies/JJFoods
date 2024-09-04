@@ -6,7 +6,7 @@ import { Colors } from '../../../../theme/Colors';
 import { textVariants } from '../../../../theme/StyleVarients';
 import OrderListWithStatus from './OrderListWithStatus';
 import dimensions from '../../../../theme/Dimensions';
-import { Card, RadioButton } from 'react-native-paper';
+import { Card, Icon, RadioButton } from 'react-native-paper';
 import { moderateScale } from 'react-native-size-matters';
 import { Background } from '../../../../theme/CongfigrationStyle';
 import CCard from '../../../../components/CCard';
@@ -65,7 +65,7 @@ const Orders = () => {
             />
           </View> */}
 
-          {/* Order Type Selection */}
+          {/* Order Type Selection buttons */}
 
           <RadioButton.Group
             onValueChange={value => setOrderType(value)}
@@ -73,23 +73,51 @@ const Orders = () => {
           >
             {/* Orders button */}
             <CCard style={styles.card} onPress={() => handleCardPress('Normal')}>
-              <View style={{ flexDirection: "row", alignItems: 'center' }}>
-                <RadioButton value="Normal" />
-                <Text style={[
-                  textVariants.textSubHeading,
-                  { fontSize: orderType === 'Normal' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'Normal' ? Colors.primary : Colors.black }
-                ]}>Orders</Text>
+              <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+                  <View style={{ marginHorizontal: 15 }}>
+                    <Icon
+                      source={require('../../../../../assets/images/orderIconBottom.png')}
+                      color={orderType === 'Normal' ? Colors.primary : Colors.gray}
+                      size={dimensions.vw * 6}
+                    />
+                  </View>
+
+                  <Text style={[
+                    textVariants.textSubHeading,
+                    { fontSize: orderType === 'Normal' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'Normal' ? Colors.primary : Colors.black }
+                  ]}>Orders</Text>
+
+                </View>
+                <View style={{ marginEnd: 15 }}>
+                  <RadioButton value="Normal" />
+                </View>
               </View>
+
             </CCard>
 
             {/* PreOrders button */}
             <CCard style={styles.card} onPress={() => handleCardPress('PreOrder')}>
-              <View style={{ flexDirection: "row", alignItems: 'center' }}>
-                <RadioButton value="PreOrder" />
-                <Text style={[
-                  textVariants.textSubHeading,
-                  { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
-                ]}>PreOrders</Text>
+              <View style={{ flexDirection: "row", alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', }}>
+                  <View style={{ marginHorizontal: 15 }}>
+                    <Icon
+                      source={require('../../../../../assets/images/preOrderIcon.png')}
+                      color={orderType === 'PreOrder' ? Colors.primary : Colors.gray}
+                      size={dimensions.vw * 7}
+                    />
+                  </View>
+                  <Text style={[
+                    textVariants.textSubHeading,
+                    { fontSize: orderType === 'PreOrder' ? dimensions.vw * 4.2 : dimensions.vw * 4, color: orderType === 'PreOrder' ? Colors.primary : Colors.black }
+                  ]}>PreOrders</Text>
+                </View>
+
+                <View style={{ marginEnd: 15 }}>
+                  <RadioButton value="PreOrder" />
+                </View>
+
               </View>
             </CCard>
           </RadioButton.Group>
@@ -142,6 +170,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     padding: 4,
     marginTop: 5,
-
   }
 });
