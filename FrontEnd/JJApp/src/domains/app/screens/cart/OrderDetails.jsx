@@ -97,6 +97,7 @@ const OrderDetails = ({ data }) => {
             size={dimensions.vw * 3.5}
             iconColor={Colors.primary}
             onPress={() => handleMinusPress(item.itemid)}
+            disabled={loadingItemId === item.itemid} // Disable button when loading
           />
 
           {loadingItemId === item.itemid ? (
@@ -109,6 +110,7 @@ const OrderDetails = ({ data }) => {
             size={dimensions.vw * 3.5}
             iconColor={Colors.primary}
             onPress={() => handleAddPress(item)}
+            disabled={loadingItemId === item.itemid} // Disable button when loading
           />
         </View>
         <Text style={textVariants.textHeading}>₹ {item.totalCost}</Text>

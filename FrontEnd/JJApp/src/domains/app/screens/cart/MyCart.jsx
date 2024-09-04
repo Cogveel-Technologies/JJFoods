@@ -586,7 +586,7 @@ const MyCart = () => {
 
                     />
                     <View style={{ paddingHorizontal: 10, paddingVertical: 10 }}>
-                      <CButton label='Submit' mode='contained' onPress={handleSubmit} />
+                      <CButton label='Order Now' mode='contained' onPress={handleSubmit} />
                     </View>
                   </Modal>
                 </Portal>
