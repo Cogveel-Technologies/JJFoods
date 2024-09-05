@@ -27,6 +27,11 @@ const BillStatement = ({ data }) => {
         : 0
       : 0;
 
+
+  const DeliveryCGST = orderPreference === 'Deliver to my Address' ? data?.cgst + 1.25 : data?.cgst
+  const DeliverySGST = orderPreference === 'Deliver to my Address' ? data?.sgst + 1.25 : data?.sgst
+  const DeliveryTotal = orderPreference === 'Deliver to my Address' ? Math.round(data.itemsTotal + data.cgst + data.sgst + 10 + 50 - data.discount + 2.5) : data?.grandTotal
+
   return (
     <View style={{ marginHorizontal: 15 }}>
 
@@ -63,14 +68,14 @@ const BillStatement = ({ data }) => {
         <View style={styles.gstView}>
           <Text style={[textVariants.buttonTextHeading, styles.gstText]}>CGST</Text>
           <View style={{ flexDirection: 'row' }}>
-            <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {data?.cgst?.toFixed(2)}</Text>
+            <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {DeliveryCGST?.toFixed(2)}</Text>
           </View>
         </View>
 
         <View style={styles.gstView}>
           <Text style={[textVariants.buttonTextHeading, styles.gstText]}>SGST</Text>
           <View style={{ flexDirection: 'row' }}>
-            <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {data?.sgst?.toFixed(2)}</Text>
+            <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {DeliverySGST.toFixed(2)}</Text>
           </View>
         </View>
       </View>
@@ -89,7 +94,7 @@ const BillStatement = ({ data }) => {
 
       <View style={styles.topayView}>
         <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 4.1 }]}>{data?.discount ? 'Discounted Price' : 'To Pay'}</Text>
-        <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {data?.grandTotal?.toFixed(1)}</Text>
+        <Text style={[textVariants.textHeading, { fontSize: dimensions.vw * 3.8 }]}>₹ {DeliveryTotal}</Text>
 
       </View>
 

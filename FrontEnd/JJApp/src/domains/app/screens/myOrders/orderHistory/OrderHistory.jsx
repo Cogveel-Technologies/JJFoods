@@ -109,7 +109,7 @@ const OrderHistory = () => {
   };
 
   const renderItem = ({ item }) => {
-    // console.log(item.products, '-----+++++++++++++++Item ++++++++++++++++++-----')
+    // console.log(item, '-----+++++++++++++++Item ++++++++++++++++++-----')
     return (
       <CCard style={{ marginHorizontal: 0, padding: 0 }}>
         <TouchableOpacity onPress={() => handleDetails(item)} >
@@ -140,9 +140,9 @@ const OrderHistory = () => {
                   <Text style={[textVariants.buttonTextHeading, { color: item.state === 'cancelled' ? 'red' : "green", }]}>{item.state}</Text>
                 </View>
 
-                {/* <Text style={[textVariants.buttonTextHeading, { color: "green", }]}>{item.payment.paymentMethod}</Text> */}
 
-                {item.payment.paymentMethod === 'online' && item.state === 'cancelled' ?
+
+                {(item.payment.paymentMethod === 'online' && (item.state === 'cancelled' || item.state === 'rejected') && item.payment.status === true) ?
                   (<View>
                     <View style={{ flexDirection: 'row', }}>
                       <Text style={[textVariants.buttonTextHeading, { color: Colors.black }]}>Refund Status :  </Text>
