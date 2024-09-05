@@ -1467,7 +1467,7 @@ export class PetPoojaService {
               // orderID: this.generateOrderId(),
               preorder_time: getSafeValue(order.preOrder?.orderTime) ? this.convertTo24HourFormat(order.preOrder?.orderTime) : this.getCurrentTime(),
               preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : this.getCurrentDate(),
-              // service_charge: '0',
+              service_charge: order.platformFee,
               // sc_tax_amount: '0',
               delivery_charges: getSafeValue(order.deliveryFee, '0'),
               // dc_tax_amount: getSafeValue(order.sgst, '0'),
