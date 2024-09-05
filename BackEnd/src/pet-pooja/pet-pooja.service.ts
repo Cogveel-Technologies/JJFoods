@@ -1467,9 +1467,9 @@ export class PetPoojaService {
               // orderID: this.generateOrderId(),
               preorder_time: getSafeValue(order.preOrder?.orderTime) ? this.convertTo24HourFormat(order.preOrder?.orderTime) : this.getCurrentTime(),
               preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : this.getCurrentDate(),
-              service_charge: order.platformFee,
+              // service_charge: order.platformFee,
               // sc_tax_amount: '0',
-              delivery_charges: getSafeValue(order.deliveryFee, '0'),
+              // delivery_charges: getSafeValue(order.deliveryFee, '0'),
               // dc_tax_amount: getSafeValue(order.sgst, '0'),
               // dc_gst_details: [
               //   {
@@ -1502,7 +1502,7 @@ export class PetPoojaService {
               discount_total: getSafeValue(order.discount?.discount, '0'),
               tax_total: getSafeValue(order.cgst + order.sgst, '0'),
               discount_type: order.discount?.discount ? 'F' : "",// dynamic
-              total: getSafeValue(order.grandTotal - order.deliveryFee, '0'),
+              total: getSafeValue(order.grandTotal - order.deliveryFee - order.platformFee, '0'),
               description: '',
               created_on: this.formatDate(new Date(order.createdAt)),
               // enable_delivery: order.orderPreference === 'Deliver to my Address' ? 1 : 0,
