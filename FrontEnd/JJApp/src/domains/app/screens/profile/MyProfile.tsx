@@ -198,7 +198,12 @@ const MyProfile = () => {
                 >
 
                   <View style={styles.profileContainer}>
-                    <Image source={userDetails?.imageUrl ? { uri: userDetails.imageUrl } : demoprofilePic} style={styles.profilePic} />
+                    {/* Display selected image if available, else show the current user image */}
+                    <Image
+                      source={selectedImage ? { uri: selectedImage.path } : (userDetails?.imageUrl ? { uri: userDetails.imageUrl } : demoprofilePic)}
+                      style={styles.profilePic}
+                    />
+
                     <CCard
                       style={styles.editImage}>
                       <IconButton
