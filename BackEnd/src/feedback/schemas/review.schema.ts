@@ -4,7 +4,10 @@ import { User } from 'src/auth/schemas/user.schema';
 
 export type ReviewDocument = HydratedDocument<Review>;
 
-@Schema()
+@Schema({
+  timestamps: true
+
+})
 export class Review {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User

@@ -5,7 +5,10 @@ import { Order } from 'src/order/schemas/order.schema';
 
 export type RatingOrderDocument = HydratedDocument<RatingOrder>;
 
-@Schema()
+@Schema({
+  timestamps: true
+
+})
 export class RatingOrder {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User
