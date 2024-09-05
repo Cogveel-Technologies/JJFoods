@@ -47,7 +47,7 @@ const ProductFeedback = () => {
         <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3.5, marginBottom: 10, textAlign: 'left' }]}>
           {item?.feedback}
         </Text>
-        <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3, paddingStart: 10 }]}>{new Date(item.updatedAt).toLocaleString()}</Text>
+        <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3, }]}>{new Date(item.updatedAt).toLocaleString()}</Text>
 
       </View>
 
