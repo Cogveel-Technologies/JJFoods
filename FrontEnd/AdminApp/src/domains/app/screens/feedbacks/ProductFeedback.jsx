@@ -11,7 +11,7 @@ import { Background } from '../../../../theme/CongfigrationStyle';
 
 const ProductFeedback = () => {
   const { data, error, isLoading, isError, refetch } = useGetAllProductFeedbackQuery();
-  // console.log(data, '---------feedback----------')
+  console.log(data, '---------feedback----------')
 
 
   const renderFeedbackItem = ({ item }) => (
@@ -34,19 +34,20 @@ const ProductFeedback = () => {
       </View>
 
 
-      <View style={{ marginStart: 60 }}>
+      <View style={{ marginStart: 50 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5 }}>
           <Text style={textVariants.textSubHeading}>
             <Text style={{ fontSize: 18, fontWeight: 'bold' }}>
               {'⭐'.repeat(item?.rating)}
             </Text>
           </Text>
-          <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3, paddingStart: 10 }]}>12 mins ago</Text>
+
         </View>
 
         <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3.5, marginBottom: 10, textAlign: 'left' }]}>
-          {item.feedback}
+          {item?.feedback}
         </Text>
+        <Text style={[textVariants.textSubHeading, { fontSize: dimensions.vw * 3, paddingStart: 10 }]}>{new Date(item.updatedAt).toLocaleString()}</Text>
 
       </View>
 
