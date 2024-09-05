@@ -1419,6 +1419,16 @@ export class PetPoojaService {
 
 
   }
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
 
 
   private mapOrderToApiPayload(order) {
@@ -1489,13 +1499,14 @@ export class PetPoojaService {
               payment_type: order.payment?.paymentMethod === 'online' ? 'ONLINE' : 'COD',
               table_no: '',
               no_of_persons: '1',
-              // discount_total: getSafeValue(order.discount?.discount, '0'),
-              tax_total: getSafeValue(order.cgst + order.sgst + order.platformFee + order.deliveryFee, '0'),
-              discount_type: 'F',// dynamic
-              total: getSafeValue(order.grandTotal, '0'),
+              discount_total: getSafeValue(order.discount?.discount, '0'),
+              tax_total: getSafeValue(order.cgst + order.sgst, '0'),
+              discount_type: order.discount?.discount ? 'F' : "",// dynamic
+              total: getSafeValue(order.grandTotal - order.deliveryFee, '0'),
               description: '',
-              created_on: new Date(order.createdAt).toISOString(),
-              enable_delivery: order.orderPreference === 'Deliver to my Address' ? 1 : 0,
+              created_on: this.formatDate(new Date(order.createdAt)),
+              // enable_delivery: order.orderPreference === 'Deliver to my Address' ? 1 : 0,
+              enable_delivery: 1,
               min_prep_time: 20,
               callback_url: this.configService.get<string>('WEBHOOKURL'),
               collect_cash: getSafeValue(order.grandTotal, '0'),
@@ -1506,19 +1517,19 @@ export class PetPoojaService {
             details: order.products.map((product) => ({
               id: getSafeValue(product.itemId),
               name: product.name,
-              // gst_liability: 'vendor',
-              // item_tax: [
-              //   {
-              //     id: '11213',
-              //     name: 'CGST',
-              //     amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
-              //   },
-              //   {
-              //     id: '20375',
-              //     name: 'SGST',
-              //     amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
-              //   },
-              // ],
+              gst_liability: 'restaurant',
+              item_tax: [
+                {
+                  id: '11213',
+                  name: 'CGST',
+                  amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                },
+                {
+                  id: '20375',
+                  name: 'SGST',
+                  amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                },
+              ],
               // item_discount: '0',
               price: getSafeValue(product.price),
               final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
@@ -1549,28 +1560,28 @@ export class PetPoojaService {
                 tax: getSafeValue(order.sgst, '0'),
                 restaurant_liable_amt: '0.00',
               },
-              {
-                id: '21866',
-                title: 'Platform Fee',
-                type: 'F',
-                price: order.platformFee,
-                tax: order.platformFee,
-                restaurant_liable_amt: '0.00',
-              },
+              // {
+              //   id: '21866',
+              //   title: 'Platform Fee',
+              //   type: 'F',
+              //   price: order.platformFee,
+              //   tax: order.platformFee,
+              //   restaurant_liable_amt: '0.00',
+              // },
               // 
 
             ],
           },
-          Discount: {
-            details: [
-              {
-                id: order.discount?.couponId || "0",//dynamic
-                title: 'Discount',
-                type: 'F',//dynamic
-                price: getSafeValue(order.discount?.discount, '0'),
-              },
-            ],
-          },
+          // Discount: {
+          //   details: [
+          //     {
+          //       id: order.discount?.couponId || "0",//dynamic
+          //       title: 'Discount',
+          //       type: 'F',//dynamic
+          //       price: getSafeValue(order.discount?.discount, '0'),
+          //     },
+          //   ],
+          // },
         },
         udid: '',
         device_type: 'Web',
@@ -1579,6 +1590,165 @@ export class PetPoojaService {
     // console.log(res)
     return res;
   }
+  // private mapOrderToApiPayload(order) {
+  //   const getSafeValue = (value, defaultValue = '') => value !== undefined && value !== null ? value.toString() : defaultValue;
+
+  //   return {
+  //     app_key: this.configService.get<string>('PETPOOJA_KEY'),
+  //     app_secret: this.configService.get<string>('PETPOOJA_SECRET'),
+  //     access_token: this.configService.get<string>('PETPOOJA_TOKEN'),
+  //     orderinfo: {
+  //       OrderInfo: {
+  //         Restaurant: {
+  //           details: {
+  //             res_name: 'jj foods',
+  //             address: '2nd Floor, Reliance Mall, Nr.Akshar Chowk',
+  //             contact_information: '9427846660',
+  //             restID: "pt90esg5",
+  //           },
+  //         },
+  //         Customer: {
+  //           details: {
+  //             email: getSafeValue(order.user?.emailId),
+  //             name: getSafeValue(order.user?.name),
+  //             address: `${getSafeValue(order.address?.address1)}, ${getSafeValue(order.address?.address2)}, ${getSafeValue(order.address?.address3)}`,
+  //             phone: getSafeValue(order.user?.phoneNumber),
+  //             latitude: '34.11752681212772',// order?.address?.latitude,
+  //             longitude: '74.72949172653219',//order?address?.longitude
+  //           },
+  //         },
+  //         Order: {
+  //           details: {
+  //             orderID: order.id,
+  //             preorder_time: getSafeValue(order.preOrder?.orderTime) ? this.convertTo24HourFormat(order.preOrder?.orderTime) : this.getCurrentTime(),
+  //             preorder_date: getSafeValue(order.preOrder?.orderDate) ? getSafeValue(order.preOrder?.orderDate) : this.getCurrentDate(),
+  //             service_charge: '0',
+  //             sc_tax_amount: '0',
+  //             delivery_charges: getSafeValue(order.deliveryFee, '0'),
+  //             dc_tax_amount: getSafeValue(order.sgst, '0'),
+  //             dc_gst_details: [
+  //               {
+  //                 gst_liable: 'vendor',
+  //                 amount: getSafeValue(order.sgst, '0'),
+  //               },
+  //               {
+  //                 gst_liable: 'restaurant',
+  //                 amount: '0',
+  //               },
+  //             ],
+  //             packing_charges: getSafeValue(order.platformFee, '0'),
+  //             pc_tax_amount: getSafeValue(order.cgst, '0'),
+  //             pc_gst_details: [
+  //               {
+  //                 gst_liable: 'vendor',
+  //                 amount: getSafeValue(order.cgst, '0'),
+  //               },
+  //               {
+  //                 gst_liable: 'restaurant',
+  //                 amount: '0',
+  //               },
+  //             ],
+  //             order_type: order.orderPreference === 'delivery' ? 'D' : 'H',
+  //             ondc_bap: 'JJFOODS',
+  //             advanced_order: 'N',
+  //             payment_type: order.payment?.paymentMethod === 'credit_card' ? 'Online' : 'COD',
+  //             table_no: '',
+  //             no_of_persons: '0',
+  //             discount_total: getSafeValue(order.discount?.discount, '0'),
+  //             tax_total: getSafeValue(order.cgst + order.sgst, '0'),
+  //             discount_type: 'F',// dynamic
+  //             total: getSafeValue(order.grandTotal, '0'),
+  //             description: '',
+  //             created_on: new Date(order.createdAt).toISOString(),
+  //             enable_delivery: order.orderPreference === 'delivery' ? 1 : 0,
+  //             min_prep_time: 20,
+  //             callback_url: this.configService.get<string>('WEBHOOKURL'),
+  //             collect_cash: getSafeValue(order.grandTotal, '0'),
+  //             otp: '9876',
+  //           },
+  //         },
+  //         OrderItem: {
+  //           details: order.products.map((product) => ({
+  //             id: getSafeValue(product.itemId),
+  //             name: 'Product Name',
+  //             gst_liability: 'vendor',
+  //             item_tax: [
+  //               {
+  //                 id: '11213',
+  //                 name: 'CGST',
+  //                 amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
+  //               },
+  //               {
+  //                 id: '20375',
+  //                 name: 'SGST',
+  //                 amount: getSafeValue((parseFloat(product.price) * 0.025).toFixed(2)),
+  //               },
+  //             ],
+  //             item_discount: '0',
+  //             price: getSafeValue(product.price),
+  //             final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
+  //             quantity: getSafeValue(product.quantity),
+  //             description: '',
+  //             variation_name: '',
+  //             variation_id: '',
+  //             AddonItem: {
+  //               details: [],
+  //             },
+  //           })),
+  //         },
+  //         Tax: {
+  //           details: [
+  //             {
+  //               id: '11213',
+  //               title: 'CGST',
+  //               type: 'P',
+  //               price: '2.5',
+  //               tax: '5.9',
+  //               restaurant_liable_amt: '0.00',
+  //             },
+  //             {
+  //               id: '20375',
+  //               title: 'SGST',
+  //               type: 'P',
+  //               price: '2.5',
+  //               tax: '5.9',
+  //               restaurant_liable_amt: '0.00',
+  //             },
+  //             {
+  //               id: '21866',
+  //               title: 'CGST',
+  //               type: 'P',
+  //               price: '9',
+  //               tax: '25.11',
+  //               restaurant_liable_amt: '25.11',
+  //             },
+  //             {
+  //               id: '21867',
+  //               title: 'SGST',
+  //               type: 'P',
+  //               price: '9',
+  //               tax: '25.11',
+  //               restaurant_liable_amt: '25.11',
+  //             },
+  //           ],
+  //         },
+  //         Discount: {
+  //           details: [
+  //             {
+  //               id: '362',//dynamic
+  //               title: 'Discount',
+  //               type: 'F',//dynamic
+  //               price: getSafeValue(order.discount?.discount, '0'),
+  //             },
+  //           ],
+  //         },
+  //       },
+  //       udid: '',
+  //       device_type: 'Web',
+  //     },
+  //   };
+  // }
+
 
 
 }

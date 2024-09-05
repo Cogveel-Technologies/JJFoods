@@ -201,21 +201,25 @@ export class CartService {
     const itemsTotal = newData.reduce((total, item) => {
       return total + item.totalCost
     }, 0)
+    const platformFee = feeDocument?.platformFee || 0;
+
+    const amountToBeTaxed = itemsTotal + platformFee + deliveryFee - discount;
 
 
     const cgstTax = feeDocument.cgst;
     const sgstTax = feeDocument.sgst;
 
-    let cgst = cgstTax * itemsTotal / 100;
-    let sgst = sgstTax * itemsTotal / 100;
+    let cgst = cgstTax * amountToBeTaxed / 100;
+    let sgst = sgstTax * amountToBeTaxed / 100;
 
 
 
     let menu = restaurantDetails.menu;
     if (menu == 'petpooja') {
       const taxes = await this.connection.db.collection('taxes').find().toArray();
-      cgst = taxes[0].tax * itemsTotal / 100;
-      sgst = taxes[1].tax * itemsTotal / 100;
+      cgst = taxes[0].tax * amountToBeTaxed / 100;
+      sgst = taxes[1].tax * amountToBeTaxed
+        / 100;
 
 
     }
@@ -223,7 +227,7 @@ export class CartService {
 
 
     // const feesDoc = await this.feesModel.findOne()
-    const platformFee = feeDocument?.platformFee || 0;
+
 
     const grandTotal = Math.round(itemsTotal + cgst + sgst + platformFee - discount + deliveryFee);
 
