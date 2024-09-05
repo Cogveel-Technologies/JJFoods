@@ -11,7 +11,7 @@ import { Background } from '../../../../theme/CongfigrationStyle';
 
 const ProductFeedback = () => {
   const { data, error, isLoading, isError, refetch } = useGetAllProductFeedbackQuery();
-  console.log(data, '---------feedback----------')
+  // console.log(data, '---------feedback----------')
 
 
   const renderFeedbackItem = ({ item }) => (
