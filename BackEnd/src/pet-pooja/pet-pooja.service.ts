@@ -1402,7 +1402,7 @@ export class PetPoojaService {
     month = month.toString().padStart(2, '0');
     day = day.toString().padStart(2, '0');
 
-    return `${year}:${month}:${day}`;
+    return `${year}-${month}-${day}`;
   }
 
   orderPreference(x) {
@@ -1498,7 +1498,7 @@ export class PetPoojaService {
               advanced_order: order.preOrder.type ? 'Y' : 'N',
               payment_type: order.payment?.paymentMethod === 'online' ? 'ONLINE' : 'COD',
               table_no: '',
-              no_of_persons: '1',
+              no_of_persons: '',
               discount_total: getSafeValue(order.discount?.discount, '0'),
               tax_total: getSafeValue(order.cgst + order.sgst, '0'),
               discount_type: order.discount?.discount ? 'F' : "",// dynamic
@@ -1530,9 +1530,10 @@ export class PetPoojaService {
                   amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
                 },
               ],
-              // item_discount: '0',
+              item_discount: '0',
               price: getSafeValue(product.price),
-              final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
+              // final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
+              final_price: getSafeValue(product.price),
               quantity: getSafeValue(product.quantity),
               // description: '',
               // variation_name: '',
@@ -1550,7 +1551,7 @@ export class PetPoojaService {
                 type: 'P',
                 price: '2.5',
                 tax: getSafeValue(order.cgst, '0'),
-                restaurant_liable_amt: '0.00',
+                restaurant_liable_amt: order.cgst,
               },
               {
                 id: '20375',
@@ -1558,7 +1559,7 @@ export class PetPoojaService {
                 type: 'P',
                 price: '2.5',
                 tax: getSafeValue(order.sgst, '0'),
-                restaurant_liable_amt: '0.00',
+                restaurant_liable_amt: order.sgst,
               },
               // {
               //   id: '21866',
