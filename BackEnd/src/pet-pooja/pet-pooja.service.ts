@@ -1551,7 +1551,7 @@ export class PetPoojaService {
                 type: 'P',
                 price: '2.5',
                 tax: getSafeValue(order.cgst, '0'),
-                restaurant_liable_amt: order.cgst,
+                restaurant_liable_amt: order.cgst.toString(),
               },
               {
                 id: '20375',
@@ -1559,7 +1559,7 @@ export class PetPoojaService {
                 type: 'P',
                 price: '2.5',
                 tax: getSafeValue(order.sgst, '0'),
-                restaurant_liable_amt: order.sgst,
+                restaurant_liable_amt: order.sgst.toString(),
               },
               // {
               //   id: '21866',
