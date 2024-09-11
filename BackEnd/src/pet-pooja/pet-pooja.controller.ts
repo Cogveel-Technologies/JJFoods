@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, RawBodyRequest, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, RawBodyRequest, Req, UseGuards } from '@nestjs/common';
 import { PetPoojaService } from './pet-pooja.service';
 import { AuthGuard } from '@nestjs/passport';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
@@ -87,6 +87,7 @@ export class PetPoojaController {
   }
 
   @Post('/pushmenuendpoint')
+  @HttpCode(200)
   async pushmenu(@Body() body) {
     // @Req() req: RawBodyRequest<Request>
     // const body = req.rawBody;
