@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Post,
   Put,
@@ -95,11 +96,13 @@ export class AuthController {
   }
 
   @Post('/update_store_status')
+  @HttpCode(200)
   updateStoreStatus(@Body() body) {
     return this.authService.updateStoreStatus(body);
   }
 
   @Post('/get_store_status')
+  @HttpCode(200)
   getStoreStatus(@Body() body) {
     if (body.restID != 'pt90esg5') {
       throw new Error('invalid restaurant id')
