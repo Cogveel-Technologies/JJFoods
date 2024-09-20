@@ -748,7 +748,7 @@ export class PetPoojaService {
   }
   async paginatedMenu(page) {
     try {
-      const resPerPage = 66;
+      const resPerPage = 10;
       const currentPage = Number(page) || 1
       const skip = resPerPage * (currentPage - 1);
       // Check if the restaurant is open
@@ -1005,7 +1005,7 @@ export class PetPoojaService {
 
   async fetchMenu() {
     const url = 'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1/mapped_restaurant_menus';
-    const data = { "restID": "pt90esg5" };
+    const data = { "restID": "kqpn461c" };
 
     // Define headers
     const headers = new Headers();
