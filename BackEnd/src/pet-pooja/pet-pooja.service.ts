@@ -1054,7 +1054,9 @@ export class PetPoojaService {
 
 
   async saveOrder(body) {
-    const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
+    // const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
+
+    const url = 'https://pponlineordercb.petpooja.com/save_order';
     // console.log("called")
 
     const data = this.mapOrderToApiPayload(body);
@@ -1448,7 +1450,7 @@ export class PetPoojaService {
               res_name: 'jj foods',
               address: '2nd Floor, Reliance Mall, Nr.Akshar Chowk',
               contact_information: '9427846660',
-              restID: "pt90esg5",
+              restID: "kqpn461c",
             },
           },
           Customer: {
