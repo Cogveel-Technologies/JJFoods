@@ -104,7 +104,7 @@ export class AuthController {
   @Post('/get_store_status')
   @HttpCode(200)
   getStoreStatus(@Body() body) {
-    if (body.restID != 'pt90esg5') {
+    if (body.restID != 'kqpn461c') {
       throw new Error('invalid restaurant id')
     }
 
