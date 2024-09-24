@@ -28,7 +28,7 @@ export class NotificationService {
       if (deviceTokens.length === 0) {
         return new Error("no users")
       }
-
+      // console.log(deviceTokens)
       // Define the notification payload
       const notificationPayload = {
         notification: {
@@ -43,10 +43,11 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
+      // console.log(response.responses[0].error)
 
 
 
@@ -92,7 +93,7 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
@@ -141,7 +142,7 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
@@ -190,7 +191,7 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
@@ -239,7 +240,7 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
@@ -288,7 +289,7 @@ export class NotificationService {
       };
 
       // Send the notification to all device tokens
-      const response = await admin.messaging().sendMulticast({
+      const response = await admin.messaging().sendEachForMulticast({
         tokens: deviceTokens,
         ...notificationPayload,
       });
