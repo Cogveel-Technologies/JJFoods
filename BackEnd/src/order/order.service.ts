@@ -1210,7 +1210,7 @@ export class OrderService {
 
     for (let i = 0; i < order.products.length; i++) {
       const body = {
-        product: { itemId: order.products[i]["itemid"] },
+        product: { itemId: order.products[i]["itemid"], variationId: order.products[i]?.selectedVariation ? order.products[i].selectedVariation.id : "" },
         userId: order.user,
         quantity: order.products[i]["quantity"]
       }
