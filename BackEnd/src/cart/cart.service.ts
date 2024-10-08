@@ -35,7 +35,7 @@ export class CartService {
     }
 
     for (const product of products) {
-      const { itemId, quantity } = product;
+      const { itemId, quantity, variationId, vId, vName } = product;
 
       // Find the index of the product in the cart if it exists
       const productIndex = cart.cartItems.findIndex(
@@ -45,11 +45,12 @@ export class CartService {
       if (productIndex !== -1) {
         // Update the quantity of the existing product
         cart.cartItems[productIndex].quantity += quantity;
+
       } else {
         // Add the new product to the cart
         cart.cartItems.push({
           user: userId,
-          product: { itemId },
+          product: { itemId, variationId, vId, vName },
           quantity,
         });
       }
@@ -70,12 +71,15 @@ export class CartService {
     // }
     const { userId } = body;
     const { itemId } = body.product;
+    const { variationId } = body.product;
     const { quantity } = body
     // console.log(quantity)
     const cart = await this.cartModel.findOne({ user: userId });
     if (cart) {
       const productExist = cart.cartItems.findIndex(
-        (item) => item.product.itemId == itemId
+        (item) => {
+          return (item.product.itemId == itemId)
+        }
       );
       if (productExist !== -1) {
         await this.cartModel.findOneAndUpdate(
@@ -163,16 +167,36 @@ export class CartService {
       return map;
     }, {});
 
+    const itemIdToVariationIdMap = cart.cartItems.reduce((map, item) => {
+      map[item.product.itemId] = item.product?.variationId;
+      return map;
+
+    }, {})
+
     const itemIds = cart.cartItems.map(item => item.product.itemId);
     const items = await this.connection.db.collection('items').find({ itemid: { $in: itemIds } }).toArray();
 
     // Add the correct quantity to each item
-    const newDatas = items.map(item => ({
-      itemid: item.itemid,
-      ...item,
-      quantity: itemIdToQuantityMap[item.itemid],
-      totalCost: itemIdToQuantityMap[item.itemid] * item.price,
-    }));
+    const newDatas = items.map(item => {
+      let variation: any;
+      let variationPrice = 0;
+      if (itemIdToVariationIdMap[item.itemid]) {
+
+        variation = item.variation.find(variant => variant.id === itemIdToVariationIdMap[item.itemid]);
+        // console.log(variation)
+
+        variationPrice = variation ? variation.price : 0;
+
+      }
+      return {
+        itemid: item.itemid,
+        selectedVariation: itemIdToVariationIdMap[item.itemid] ? variation : {},
+        ...item,
+        quantity: itemIdToQuantityMap[item.itemid],
+        totalCost: itemIdToVariationIdMap[item.itemid] ? itemIdToQuantityMap[item.itemid] * variationPrice : itemIdToQuantityMap[item.itemid] * item.price,
+      }
+    });
+    // console.log(JSON.stringify(newDatas))
 
     const discrepancystockitems = await this.petpoojaService.getStock();
     const newData = newDatas.map(item => {
@@ -305,7 +329,7 @@ export class CartService {
     });
     if (cart) {
       await this.cartModel.findOneAndUpdate(
-        { "cartItems.product.itemId": itemId },
+        { user: userId, "cartItems.product.itemId": itemId },
         { $inc: { "cartItems.$.quantity": 1 } },
         { new: true }
       );

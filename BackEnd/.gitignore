@@ -2,6 +2,7 @@
 /dist
 /node_modules
 /.env
+/New folder
 src/utils/firebase/jj.ts
 src/utils/firebase/firebaseInit.ts
 # Logs

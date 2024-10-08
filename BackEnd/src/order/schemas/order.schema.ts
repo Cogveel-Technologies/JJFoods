@@ -12,11 +12,15 @@ export class Order {
 
   @Prop({ required: true })
   products: [{
-    itemId: string,
+    itemid: string,
     price: number,
     quantity: number,
     details?: any;
+    selectedVariation?: any;
+    name?: string;
   }];
+  // @Prop({ required: true, type: [{ type: Map, of: mongoose.Schema.Types.Mixed }] })
+  // products: Map<string, any>[];
 
   @Prop()
   cgst: number;

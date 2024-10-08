@@ -9,9 +9,12 @@ export class CartItem {
   user: User;
 
   // @Prop({ required: true })
-  @Prop({ type: { itemId: String } })
+  @Prop({ type: { itemId: { type: String }, variationId: { type: String }, vId: { type: String }, vName: { type: String } } })
   product: {
     itemId: string;
+    variationId: string;
+    vName: string;
+    vId: string;
 
   };
 

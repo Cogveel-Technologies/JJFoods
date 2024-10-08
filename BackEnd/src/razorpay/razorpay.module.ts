@@ -13,9 +13,11 @@ import { AuthModule } from 'src/auth/auth.module';
 import { Discrepancy, DiscrepancySchema } from 'src/pet-pooja/schemas/stock.schema';
 import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/restaurant.schema';
 import { NotificationModule } from 'src/notification/notification.module';
+import { User, UserSchema } from 'src/auth/schemas/user.schema';
+import { Address, AddressSchema } from 'src/auth/schemas/address.schema';
 
 @Module({
-  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), forwardRef(() => CartModule), forwardRef(() => AuthModule), NotificationModule],
+  imports: [ConfigModule, MongooseModule.forFeature([{ name: 'Salt', schema: SaltSchema }, { name: 'Order', schema: OrderSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: User.name, schema: UserSchema }, { name: Address.name, schema: AddressSchema }]), forwardRef(() => OrderModule), forwardRef(() => PetPoojaModule), forwardRef(() => CartModule), forwardRef(() => AuthModule), NotificationModule],
   providers: [RazorpayService],
   controllers: [RazorpayController],
   exports: [RazorpayService]

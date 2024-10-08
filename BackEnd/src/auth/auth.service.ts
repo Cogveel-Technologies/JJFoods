@@ -25,6 +25,7 @@ import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
 
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
+const sharp = require('sharp');
 @Injectable()
 export class AuthService {
   constructor(@InjectModel(User.name) private userModel: Model<User>,
@@ -45,6 +46,7 @@ export class AuthService {
 
   }
   bucket = admin.storage().bucket();
+
   sendMail(email: string, otp: number): void {
     const welcomeMessage = `
         <p>Dear Valued Customer,</p>
@@ -1084,10 +1086,18 @@ export class AuthService {
       // //console.log(image)
       const fileName = image.originalname;
       const fileUpload = this.bucket.file(fileName);
-      const fileStream = image.buffer; // Use buffer for file data
+      // const fileStream = image.buffer; // Use buffer for file data
+      const fileStream = Buffer.from(image.buffer);
+
+
+      // Use Sharp to compress the image
+      const compressedImageBuffer = await sharp(fileStream)
+        .resize({ width: 200 }) // Adjust the width as needed
+        .jpeg({ quality: 80 }) // Adjust the quality as needed
+        .toBuffer();
 
       // Upload image to Firebase Storage
-      await fileUpload.save(fileStream, {
+      await fileUpload.save(compressedImageBuffer, {
         metadata: {
           contentType: image.mimetype
         }

@@ -17,6 +17,12 @@ import { Discrepancy, StockItem } from './schemas/stock.schema';
 
 import { CategoryCT } from 'src/menu/schema/categoryct.schema';
 import { Query } from 'nest-access-control';
+import * as fs from 'fs';
+import * as path from 'path';
+
+
+const admin = require("../utils/firebase/firebaseInit");
+const axios = require('axios');
 
 const getCronInterval = () => {
 
@@ -40,6 +46,7 @@ export class PetPoojaService {
 
 
   ) { }
+  bucket = admin.storage().bucket();
 
   async addStock(bulkStockItemDto) {
     const results = [];
@@ -52,6 +59,7 @@ export class PetPoojaService {
 
 
     // Find or create today's discrepancy document
+    //new changes-d
     let discrepancy = await this.discrepancyModel.findOne({
       createdAt: { $gte: today },
       menu: menu
@@ -964,35 +972,62 @@ export class PetPoojaService {
   async pushmenu(data) {
     try {
       // Clear existing data and insert new data into respective collections
-      await this.connection.collection('restaurants').deleteMany({});
-      await this.connection.collection('restaurants').insertMany(data.restaurants);
+      if (data?.restaurants && data?.restaurants.length > 0) {
+        await this.connection.collection('restaurants').deleteMany({});
+        await this.connection.collection('restaurants').insertMany(data.restaurants);
+      }
+      if (data?.ordertypes && data.ordertypes.length > 0) {
+        await this.connection.collection('ordertypes').deleteMany({});
+        await this.connection.collection('ordertypes').insertMany(data.ordertypes);
+      }
 
-      await this.connection.collection('ordertypes').deleteMany({});
-      await this.connection.collection('ordertypes').insertMany(data.ordertypes);
+
+      if (data?.categories && data?.categories.length > 0) {
+        await this.connection.collection('categories').deleteMany({});
+        await this.connection.collection('categories').insertMany(data.categories);
+      }
+      if (data?.parentcategories && data?.parentcategories.length > 0) {
+        await this.connection.collection('parentcategories').deleteMany({});
+        await this.connection.collection('parentcategories').insertMany(data.parentcategories);
+      }
+      if (data?.variations && data?.variations.length > 0) {
+        await this.connection.collection('variations').deleteMany({});
+        await this.connection.collection('variations').insertMany(data.variations);
+      }
+      if (data?.addongroups && data?.addongroups.length > 0) {
+        await this.connection.collection('addongroups').deleteMany({});
+        await this.connection.collection('addongroups').insertMany(data.addongroups);
+      }
+      if (data?.attributes && data?.attributes.length > 0) {
+        await this.connection.collection('attributes').deleteMany({});
+        await this.connection.collection('attributes').insertMany(data.attributes);
+      }
+      if (data?.taxes && data?.taxes.length > 0) {
+        await this.connection.collection('taxes').deleteMany({});
+        await this.connection.collection('taxes').insertMany(data.taxes);
+      }
+
+      if (data?.discounts && data?.discounts.length > 0) {
+
+        await this.connection.collection('discounts').deleteMany({});
+        await this.connection.collection('discounts').insertMany(data.discounts);
+      }
+
+      for (let item of data.items) {
+        if (item.item_image_url) {
+          const filename = `${item.itemid}.jpg`;  // Generate a unique filename for Firebase
+          const localImagePath = await this.downloadImage(item.item_image_url, filename);
+          const firebaseUrl = await this.uploadToFirebase(localImagePath, filename);
+          item.item_image_url = firebaseUrl;  // Replace the imageUrl with the Firebase URL
+        }
+      }
+
+
 
       await this.connection.collection('items').deleteMany({});
       await this.connection.collection('items').insertMany(data.items);
 
-      await this.connection.collection('categories').deleteMany({});
-      await this.connection.collection('categories').insertMany(data.categories);
 
-      // await this.connection.collection('parentcategories').deleteMany({});
-      // await this.connection.collection('parentcategories').insertMany(data.parentcategories);
-
-      await this.connection.collection('variations').deleteMany({});
-      await this.connection.collection('variations').insertMany(data.variations);
-
-      await this.connection.collection('addongroups').deleteMany({});
-      await this.connection.collection('addongroups').insertMany(data.addongroups);
-
-      await this.connection.collection('attributes').deleteMany({});
-      await this.connection.collection('attributes').insertMany(data.attributes);
-
-      await this.connection.collection('taxes').deleteMany({});
-      await this.connection.collection('taxes').insertMany(data.taxes);
-
-      // await this.connection.collection('discounts').deleteMany({});
-      // await this.connection.collection('discounts').insertMany(data.discounts);
 
       return {
         "success": "1",
@@ -1003,6 +1038,53 @@ export class PetPoojaService {
     }
   }
 
+  async testingImages(link) {
+    // console.log("hello1")
+    const filename = `${"abc"}.jpg`;  // Generate a unique filename for Firebase
+    // console.log("hello2")
+    const localImagePath = await this.downloadImage(link, filename);
+    // console.log(("hello 3"))
+    const firebaseUrl = await this.uploadToFirebase(localImagePath, filename);
+    // console.log("hello4")
+    return firebaseUrl;
+  }
+
+
+  async downloadImage(imageUrl: string, filename: string): Promise<string> {
+    // console.log("1")
+    const response = await axios.get(imageUrl, { responseType: 'stream' });
+    // console.log("2")
+    const filepath = path.resolve(__dirname, 'images', filename);
+    if (!fs.existsSync(path.resolve(__dirname, 'images'))) {
+      fs.mkdirSync(path.resolve(__dirname, 'images'));
+    }
+
+    console.log(filepath)
+    const writer = fs.createWriteStream(filepath);
+    // console.log("4")
+    response.data.pipe(writer);
+    // console.log("5")
+    return new Promise((resolve, reject) => {
+      writer.on('finish', () => resolve(filepath));
+      writer.on('error', reject);
+    });
+  };
+
+  async uploadToFirebase(filepath: string, filename: string): Promise<string> {
+
+    const bucket = admin.storage().bucket();
+    const file = bucket.file(filename);
+    await bucket.upload(filepath, {
+      destination: filename,
+      metadata: { contentType: 'image/jpeg' },
+    });
+    const [firebaseUrl] = await file.getSignedUrl({
+      action: 'read',
+      expires: '03-09-2500',  // Expiry date set far in the future
+    });
+    fs.unlinkSync(filepath);  // Delete the local file after upload
+    return firebaseUrl;
+  };
   async fetchMenu() {
     const url = 'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1/mapped_restaurant_menus';
     const data = { "restID": "kqpn461c" };
@@ -1052,16 +1134,78 @@ export class PetPoojaService {
     }
   }
 
+  async updateOrderStatusCancel(clientorderId) {
+    // const url = 'https://pponlineordercb.petpooja.com/update_order_status';
+    const url = 'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1/update_order_status'
+    const data = {
+      "restID": this.configService.get<string>('PETPOOJA_ID'),
+      "app_key": this.configService.get<string>('PETPOOJA_KEY'),
+      "app_secret": this.configService.get<string>('PETPOOJA_SECRET'),
+      "access_token": this.configService.get<string>('PETPOOJA_TOKEN'),
+      "orderID": "", // pass it blank, will be deprecated soon.
+      "clientorderID": clientorderId,
+      "cancelReason": "Please cancel my order.",
+      "status": "-1"
+    };
+
+    // Define headers
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    // headers.append('app-key', this.configService.get<string>('PETPOOJA_KEY'));
+    // headers.append('app-secret', this.configService.get<string>('PETPOOJA_SECRET'));
+    // headers.append('access-token', this.configService.get<string>('PETPOOJA_TOKEN'));
+
+    // console.log("request")
+
+    // Make the fetch request
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(data),
+    });
+
+
+
+    // Serialize the modified JSON back to a string
+    // const modifiedJsonResponse = JSON.stringify(data, null, 4);
+
+    // Handle the response
+    if (response.ok) {
+
+      const responseData = await response.json();
+      // if (Array.isArray(responseData.categories)) {
+      //   responseData.categories = responseData.categories.slice(0, 30);
+      // }
+      // let categoryIds = responseData.categories.map(category => category.category_id);
+
+      // // Filter the items array to only include items with matching item_categoryid
+      // responseData.items = responseData.items.filter(item => categoryIds.includes(item.item_categoryid));
+
+
+
+
+
+      // Process responseData as needed
+      return responseData;
+    } else {
+      // Handle errors
+      throw new Error('Error making fetch request');
+    }
+
+
+  }
+
+
 
   async saveOrder(body) {
-    // const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
+    const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
 
-    const url = 'https://pponlineordercb.petpooja.com/save_order';
+    // const url = 'https://pponlineordercb.petpooja.com/save_order';
     // console.log("called")
 
     const data = this.mapOrderToApiPayload(body);
 
-    console.log("--------", JSON.stringify(data))
+    // console.log("--------", JSON.stringify(data))
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -1450,7 +1594,7 @@ export class PetPoojaService {
               res_name: 'jj foods',
               address: '2nd Floor, Reliance Mall, Nr.Akshar Chowk',
               contact_information: '9427846660',
-              restID: "kqpn461c",
+              restID: this.configService.get<string>('PETPOOJA_ID'),
             },
           },
           Customer: {
@@ -1517,29 +1661,30 @@ export class PetPoojaService {
           },
           OrderItem: {
             details: order.products.map((product) => ({
-              id: getSafeValue(product.itemId),
+              id: product?.selectedVariation ? getSafeValue(product.selectedVariation.id) : getSafeValue(product.itemId),
               name: product.name,
               gst_liability: 'restaurant',
               item_tax: [
                 {
                   id: '11213',
                   name: 'CGST',
-                  amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                  amount: product?.selectedVariation ? getSafeValue((parseFloat(product?.selectedVariation) * 0.025 * product.quantity).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
                 },
                 {
                   id: '20375',
                   name: 'SGST',
-                  amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                  // amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                  amount: product?.selectedVariation ? getSafeValue((parseFloat(product?.selectedVariation) * 0.025 * product.quantity).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
                 },
               ],
               item_discount: '0',
-              price: getSafeValue(product.price),
+              price: product?.selectedVariation ? product?.selectedVariation.price : getSafeValue(product.price),
               // final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
-              final_price: getSafeValue(product.price),
+              final_price: product?.selectedVariation ? product?.selectedVariation.price : getSafeValue(product.price),
               quantity: getSafeValue(product.quantity),
               // description: '',
-              // variation_name: '',
-              // variation_id: '',
+              variation_name: product?.selectedVariation ? product?.selectedVariation.name : '',
+              variation_id: product?.selectedVariation ? product?.selectedVariation.variationid : '',
               // AddonItem: {
               //   details: [],
               // },

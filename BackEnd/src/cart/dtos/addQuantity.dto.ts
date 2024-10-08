@@ -1,9 +1,13 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 class Product {
   @IsNotEmpty()
   @IsString()
   itemId: string;
+
+  @IsOptional()
+  @IsString()
+  variationId: string;
 }
 
 export class AddQuantityDto {

@@ -42,6 +42,19 @@ class Product {
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
+
+
+  @IsOptional()
+  @IsString()
+  variationId: string;
+
+  @IsOptional()
+  @IsString()
+  vId: string;
+
+  @IsOptional()
+  @IsString()
+  vName: string;
 }
 
 export class SignupDto {
