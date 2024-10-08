@@ -1,7 +1,7 @@
 import { Inject, Injectable, ParseFloatPipe, forwardRef } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Salt } from './schemas/salt.schema';
-import { Model } from 'mongoose';
+import { Connection, Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { Order } from 'src/order/schemas/order.schema';
 import { ConfigService } from '@nestjs/config';
@@ -13,6 +13,8 @@ import { NotificationService } from 'src/notification/notification.service';
 
 import { Cron } from '@nestjs/schedule';
 import * as dotenv from 'dotenv';
+import { User } from 'src/auth/schemas/user.schema';
+import { Address } from 'src/auth/schemas/address.schema';
 var Razorpay = require('razorpay')
 
 const getCronInterval = () => {
@@ -30,8 +32,10 @@ export class RazorpayService {
     @Inject(forwardRef(() => PetPoojaService)) private readonly petPoojaService: PetPoojaService,
     @Inject(forwardRef(() => CartService)) private readonly cartService: CartService,
     @InjectModel(RestaurantDetails.name) private restaurantDetailsModel: Model<RestaurantDetails>,
-    @Inject(NotificationService) private readonly notificationService: NotificationService,) { }
-
+    @Inject(NotificationService) private readonly notificationService: NotificationService,
+    @InjectModel(User.name) private userModel: Model<User>,
+    @InjectModel(Address.name) private addressModel: Model<Address>,
+    @InjectConnection() private connection: Connection) { }
   async payment(body) {
     // console.log("razorpay body", body)
     const razorpay = await new Razorpay({
@@ -143,9 +147,54 @@ export class RazorpayService {
       order.payment.signature = rSignature
 
       //notify petpooja
+
+
+      const productsArray = order.products;
+      productsArray.map(async (product) => {
+
+        const item = await this.connection.db.collection('items').findOne({ itemid: product["itemid"] });
+        product["name"] = item.itemname;
+
+      })
+
+
+      //   const petPoojaOrderBody = {
+      //     id: order._id,
+      //     user: await this.userModel.findOne({ _id: order.user }),
+      //     products: productsArray,
+      //     cgst: order.cgst,
+      //     sgst: order.sgst,
+      //     discount: {
+      //       couponId: order.discount.couponId,
+      //       discount: order.discount.discount
+      //     },
+      //     itemsTotal: order.itemsTotal,
+      //     grandTotal: order.grandTotal,
+      //     deliveryFee: order.deliveryFee,
+      //     platformFee: order.platformFee,
+      //     orderPreference: order.orderPreference,
+      //     address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
+
+
+      //     payment: {
+      //       paymentMethod: order.payment.paymentMethod,
+      //       paymentId: order.payment.paymentId,
+      //       status: order.payment.status
+      //     },
+      //     preOrder: {
+      //       type: order.preOrder.type,
+      //       orderDate: order.preOrder.orderDate,
+      //       orderTime: order.preOrder.orderTime
+      //     },
+      //     createdAt: order.createdAt,
+      //     updatedAt: new Date()
+      //   };
+
+
       const petPoojaOrderBody = {
-        user: order.user,
-        products: order.products,
+        id: order._id,
+        user: await this.userModel.findOne({ _id: order.user }),
+        products: productsArray,
         cgst: order.cgst,
         sgst: order.sgst,
         discount: {
@@ -153,16 +202,16 @@ export class RazorpayService {
           discount: order.discount?.discount
         },
         itemsTotal: order.itemsTotal,
-        grandTotal: order.grandTotal.toFixed(2),
+        grandTotal: order.grandTotal,
         deliveryFee: order.deliveryFee,
-        platformFee: 15,
+        platformFee: order.platformFee,
         orderPreference: order.orderPreference,
-        address: order.address,
+        address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
 
         payment: {
           paymentMethod: order.payment.paymentMethod,
           paymentId: rPaymentId,
-          status: true
+          status: order.payment.status
         },
         preOrder: {
           type: order?.preOrder?.type,
@@ -177,32 +226,32 @@ export class RazorpayService {
       const restaurantDetails = await this.restaurantDetailsModel.findOne();
       const menu = restaurantDetails.menu;
       await this.notificationService.newOrder()
-      // if (menu == 'petpooja') {
-      //   const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
-      //   // console.log(petPoojaOrder)
+      if (menu == 'petpooja') {
+        const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
+        // console.log(petPoojaOrder)
 
-      //   // console.log(petPoojaOrder.restID)
+        // console.log(petPoojaOrder.restID)
 
 
-      //   // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
+        // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
 
-      //   // order.petPooja.restId = petPoojaOrder?.restID
-      //   // order['petPooja'].orderId = petPoojaOrder?.orderID
-      //   // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
-      //   if (!order.petPooja) {
-      //     order['petPooja'] = {
-      //       restId: '',
-      //       orderId: '',
-      //       clientOrderId: ''
-      //     };
-      //   }
+        // order.petPooja.restId = petPoojaOrder?.restID
+        // order['petPooja'].orderId = petPoojaOrder?.orderID
+        // order['petPooja'].clientOrderId = petPoojaOrder?.clientOrderID
+        if (!order.petPooja) {
+          order['petPooja'] = {
+            restId: '',
+            orderId: '',
+            clientOrderId: ''
+          };
+        }
 
-      //   // Assign values to the properties of petPooja
+        // Assign values to the properties of petPooja
 
-      //   order.petPooja.restId = petPoojaOrder?.restID;
-      //   order.petPooja.orderId = petPoojaOrder?.orderID;
-      //   order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
-      // }
+        order.petPooja.restId = petPoojaOrder?.restID;
+        order.petPooja.orderId = petPoojaOrder?.orderID;
+        order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
+      }
 
 
 
@@ -234,48 +283,49 @@ export class RazorpayService {
     today.setHours(0, 0, 0, 0);
     const restaurantDetails = await this.restaurantDetailsModel.findOne()
     const menu = restaurantDetails.menu;
-    let discrepancy = await this.discrepancyModel.findOne({
-      createdAt: { $gte: today },
-      menu: menu
-    }).exec();
+    //new changes-d
+    // let discrepancy = await this.discrepancyModel.findOne({
+    //   createdAt: { $gte: today },
+    //   menu: menu
+    // }).exec();
 
-    if (!discrepancy) {
-      const startOfYesterday = new Date();
-      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-      startOfYesterday.setHours(0, 0, 0, 0);
+    // if (!discrepancy) {
+    //   const startOfYesterday = new Date();
+    //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    //   startOfYesterday.setHours(0, 0, 0, 0);
 
-      const endOfYesterday = new Date();
-      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-      endOfYesterday.setHours(23, 59, 59, 999);
+    //   const endOfYesterday = new Date();
+    //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+    //   endOfYesterday.setHours(23, 59, 59, 999);
 
-      discrepancy = await this.discrepancyModel.findOne({
-        createdAt: {
-          $gte: startOfYesterday,
-          $lte: endOfYesterday
-        },
-        menu: menu
-      }).sort({ createdAt: -1 }).exec();
-    }
-    if (!discrepancy) {
-      throw new Error('No stock information available');
-    }
+    //   discrepancy = await this.discrepancyModel.findOne({
+    //     createdAt: {
+    //       $gte: startOfYesterday,
+    //       $lte: endOfYesterday
+    //     },
+    //     menu: menu
+    //   }).sort({ createdAt: -1 }).exec();
+    // }
+    // if (!discrepancy) {
+    //   throw new Error('No stock information available');
+    // }
 
-    // Iterate over the products in the order and update the used field
-    for (let i = 0; i < order.products.length; i++) {
-      const product = order.products[i];
-      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+    // // Iterate over the products in the order and update the used field
+    // for (let i = 0; i < order.products.length; i++) {
+    //   const product = order.products[i];
+    //   const stockItem = discrepancy.stockItems.find(item => item.itemId === product["itemid"]);
 
-      if (stockItem) {
-        stockItem.used -= product.quantity;
-        if (stockItem.used < 0) {
-          stockItem.used = 0; // Ensure used doesn't go below 0
-        }
-      }
-    }
+    //   if (stockItem) {
+    //     stockItem.used -= product["quantity"];
+    //     if (stockItem.used < 0) {
+    //       stockItem.used = 0; // Ensure used doesn't go below 0
+    //     }
+    //   }
+    // }
 
-    // Mark the stockItems array as modified and save the discrepancy document
-    discrepancy.markModified('stockItems');
-    await discrepancy.save();
+    // // Mark the stockItems array as modified and save the discrepancy document
+    // discrepancy.markModified('stockItems');
+    // await discrepancy.save();
 
     await order.save()
 
@@ -304,48 +354,49 @@ export class RazorpayService {
     today.setHours(0, 0, 0, 0);
     const restaurantDetails = await this.restaurantDetailsModel.findOne()
     const menu = restaurantDetails.menu;
-    let discrepancy = await this.discrepancyModel.findOne({
-      createdAt: { $gte: today },
-      menu: menu
-    }).exec();
+    //new changes-d
+    // let discrepancy = await this.discrepancyModel.findOne({
+    //   createdAt: { $gte: today },
+    //   menu: menu
+    // }).exec();
 
-    if (!discrepancy) {
-      const startOfYesterday = new Date();
-      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-      startOfYesterday.setHours(0, 0, 0, 0);
+    // if (!discrepancy) {
+    //   const startOfYesterday = new Date();
+    //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    //   startOfYesterday.setHours(0, 0, 0, 0);
 
-      const endOfYesterday = new Date();
-      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-      endOfYesterday.setHours(23, 59, 59, 999);
+    //   const endOfYesterday = new Date();
+    //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+    //   endOfYesterday.setHours(23, 59, 59, 999);
 
-      discrepancy = await this.discrepancyModel.findOne({
-        createdAt: {
-          $gte: startOfYesterday,
-          $lte: endOfYesterday
-        },
-        menu: menu
-      }).sort({ createdAt: -1 }).exec();
-    }
-    if (!discrepancy) {
-      throw new Error('No stock information available');
-    }
+    //   discrepancy = await this.discrepancyModel.findOne({
+    //     createdAt: {
+    //       $gte: startOfYesterday,
+    //       $lte: endOfYesterday
+    //     },
+    //     menu: menu
+    //   }).sort({ createdAt: -1 }).exec();
+    // }
+    // if (!discrepancy) {
+    //   throw new Error('No stock information available');
+    // }
 
-    // Iterate over the products in the order and update the used field
-    for (let i = 0; i < order.products.length; i++) {
-      const product = order.products[i];
-      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+    // // Iterate over the products in the order and update the used field
+    // for (let i = 0; i < order.products.length; i++) {
+    //   const product = order.products[i];
+    //   const stockItem = discrepancy.stockItems.find(item => item.itemId === product["itemId"]);
 
-      if (stockItem) {
-        stockItem.used -= product.quantity;
-        if (stockItem.used < 0) {
-          stockItem.used = 0; // Ensure used doesn't go below 0
-        }
-      }
-    }
+    //   if (stockItem) {
+    //     stockItem.used -= product["quantity"];
+    //     if (stockItem.used < 0) {
+    //       stockItem.used = 0; // Ensure used doesn't go below 0
+    //     }
+    //   }
+    // }
 
-    // Mark the stockItems array as modified and save the discrepancy document
-    discrepancy.markModified('stockItems');
-    await discrepancy.save();
+    // // Mark the stockItems array as modified and save the discrepancy document
+    // discrepancy.markModified('stockItems');
+    // await discrepancy.save();
 
     await order.save()
     return { message: "error" }

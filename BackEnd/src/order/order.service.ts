@@ -137,53 +137,53 @@ export class OrderService {
       if (order.payment.paymentMethod == 'online' && order.payment.status == true) {
         await this.razorpayService.refund(order._id);
       }
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // const today = new Date();
+      // today.setHours(0, 0, 0, 0);
 
-      const restaurantDetails = await this.restaurantDetailsModel.findOne()
-      const menu = restaurantDetails.menu;
-      let discrepancy = await this.discrepancyModel.findOne({
-        createdAt: { $gte: today },
-        menu: menu
-      }).exec();
+      // const restaurantDetails = await this.restaurantDetailsModel.findOne()
+      // const menu = restaurantDetails.menu;
+      // let discrepancy = await this.discrepancyModel.findOne({
+      //   createdAt: { $gte: today },
+      //   menu: menu
+      // }).exec();
 
-      if (!discrepancy) {
-        const startOfYesterday = new Date();
-        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-        startOfYesterday.setHours(0, 0, 0, 0);
+      // if (!discrepancy) {
+      //   const startOfYesterday = new Date();
+      //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      //   startOfYesterday.setHours(0, 0, 0, 0);
 
-        const endOfYesterday = new Date();
-        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-        endOfYesterday.setHours(23, 59, 59, 999);
+      //   const endOfYesterday = new Date();
+      //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      //   endOfYesterday.setHours(23, 59, 59, 999);
 
-        discrepancy = await this.discrepancyModel.findOne({
-          createdAt: {
-            $gte: startOfYesterday,
-            $lte: endOfYesterday
-          },
-          menu: menu
-        })
-      }
-      if (!discrepancy) {
-        throw new Error('No stock information available');
-      }
+      //   discrepancy = await this.discrepancyModel.findOne({
+      //     createdAt: {
+      //       $gte: startOfYesterday,
+      //       $lte: endOfYesterday
+      //     },
+      //     menu: menu
+      //   })
+      // }
+      // if (!discrepancy) {
+      //   throw new Error('No stock information available');
+      // }
 
       // Iterate over the products in the order and update the used field
-      for (let i = 0; i < order.products.length; i++) {
-        const product = order.products[i];
-        const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+      // for (let i = 0; i < order.products.length; i++) {
+      //   const product = order.products[i];
+      //   const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
 
-        if (stockItem) {
-          stockItem.used -= product.quantity;
-          if (stockItem.used < 0) {
-            stockItem.used = 0; // Ensure used doesn't go below 0
-          }
-        }
-      }
+      //   if (stockItem) {
+      //     stockItem.used -= product.quantity;
+      //     if (stockItem.used < 0) {
+      //       stockItem.used = 0; // Ensure used doesn't go below 0
+      //     }
+      //   }
+      // }
 
-      // Mark the stockItems array as modified and save the discrepancy document
-      discrepancy.markModified('stockItems');
-      await discrepancy.save();
+      // // Mark the stockItems array as modified and save the discrepancy document
+      // discrepancy.markModified('stockItems');
+      // await discrepancy.save();
 
     }
 
@@ -287,7 +287,9 @@ export class OrderService {
 
     const addressIds = orders.map(order => order.address);
     const userIds = orders.map(order => order.user);
-    const productIds = orders.flatMap(order => order.products.map(product => product.itemId));
+    const productIds = orders.flatMap(order => order.products.map(product => product["itemid"]));
+
+
 
     const [addresses, users, items] = await Promise.all([
       this.addressModel.find({ _id: { $in: addressIds } }).exec(),
@@ -295,24 +297,31 @@ export class OrderService {
       this.connection.db.collection('items').find({ itemid: { $in: productIds } }).toArray()
     ]);
 
+
     const addressMap = Object.fromEntries(addresses.map(address => [address._id, address]));
     const userMap = Object.fromEntries(users.map(user => [user._id, user]));
     const itemMap = Object.fromEntries(items.map(item => [item.itemid, item]));
 
+
+
+
+
     orders.forEach(order => {
-      order.address = addressMap[order?.address?.toString()];
-      order.user = userMap[order?.user?.toString()];
+
+      order["address"] = addressMap[order?.address?.toString()];
+      order["user"] = userMap[order?.user?.toString()];
 
       order.products.forEach(product => {
-        product.details = itemMap[product.itemId];
+        product["details"] = itemMap[product.itemid];
       });
     });
+
 
 
     const response = orders.filter((order) => {
       return `${order.preOrder.type}` == orderType;
     })
-    // console.log(response)
+    // console.log(JSON.stringify(response))
     return response;
   }
 
@@ -437,6 +446,7 @@ export class OrderService {
     return data;
   }
   async createOrder(body) {
+    // console.log(body)
     const { userId, orderPreference } = body;
     if (!userId) {
       // console.log("user id not found")
@@ -486,35 +496,36 @@ export class OrderService {
     const userCart = await this.cartService.getUserCart(userId, data);
 
     /// inventory
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    //new changes-d
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
     const restaurantDetails = await this.restaurantDetailsModel.findOne()
     const menu = restaurantDetails.menu;
-    let discrepancy = await this.discrepancyModel.findOne({
-      createdAt: { $gte: today },
-      menu: menu
-    }).exec();
+    // let discrepancy = await this.discrepancyModel.findOne({
+    //   createdAt: { $gte: today },
+    //   menu: menu
+    // }).exec();
 
-    if (!discrepancy) {
-      const startOfYesterday = new Date();
-      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-      startOfYesterday.setHours(0, 0, 0, 0);
+    // if (!discrepancy) {
+    //   const startOfYesterday = new Date();
+    //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    //   startOfYesterday.setHours(0, 0, 0, 0);
 
-      const endOfYesterday = new Date();
-      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-      endOfYesterday.setHours(23, 59, 59, 999);
+    //   const endOfYesterday = new Date();
+    //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+    //   endOfYesterday.setHours(23, 59, 59, 999);
 
-      discrepancy = await this.discrepancyModel.findOne({
-        createdAt: {
-          $gte: startOfYesterday,
-          $lte: endOfYesterday
-        },
-        menu: menu
-      }).sort({ createdAt: -1 }).exec();
-    }
-    if (!discrepancy) {
-      throw new Error('No stock information available');
-    }
+    //   discrepancy = await this.discrepancyModel.findOne({
+    //     createdAt: {
+    //       $gte: startOfYesterday,
+    //       $lte: endOfYesterday
+    //     },
+    //     menu: menu
+    //   }).sort({ createdAt: -1 }).exec();
+    // }
+    // if (!discrepancy) {
+    //   throw new Error('No stock information available');
+    // }
 
 
 
@@ -539,33 +550,38 @@ export class OrderService {
     //     price: item['price']
     //   }
     // })
+    //new changes-d
     const products = await Promise.all(userCart?.newData?.map(async (item) => {
       // const stock = await this.stockModel.findOne({ itemId: item.itemid });
       // if (stock) {
       //   stock.used = stock.used - item['quantity'];
       //   await stock.save();
       // }
-      const stock = discrepancy.stockItems.find(stockItem => stockItem.itemId === item['itemid']);
+
+      //new changes-d
+      // const stock = discrepancy.stockItems.find(stockItem => stockItem.itemId === item['itemid']);
 
 
       ///////////check here
 
-
-      if (stock) {
-        if (stock.quantity - stock.used < item.quantity) {
-          throw new Error('Insufficient stock');
-        }
-        stock.used += item['quantity'];
-      }
+      //new changes-d
+      //   if (stock) {
+      //     if (stock.quantity - stock.used < item.quantity) {
+      //       throw new Error('Insufficient stock');
+      //     }
+      //     stock.used += item['quantity'];
+      //   }
 
       return {
-        itemId: item['itemid'],
+        itemid: item['itemid'],
         quantity: item['quantity'],
-        price: item['price']
+        price: item['price'],
+        selectedVariation: item['selectedVariation'],
+        name: item['itemname']
       };
     }));
-    discrepancy.markModified('stockItems');
-    await discrepancy.save()
+    // discrepancy.markModified('stockItems');
+    // await discrepancy.save()
     let order: any;
 
 
@@ -602,7 +618,8 @@ export class OrderService {
 
     }
 
-    const petPoojaOrderBody = {
+    const petPoojaOrderBody1 = {
+
       user: await this.userModel.findOne({ _id: userId }),
       products,
       cgst: userCart?.cgst,
@@ -633,26 +650,39 @@ export class OrderService {
 
 
     }
+    order = new this.orderModel(orderBody);
     // console.log("ppob", petPoojaOrderBody)
     if (orderBody.payment.paymentMethod === 'online') {
-      order = new this.orderModel(orderBody);
+      // order = new this.orderModel(orderBody);
       await order.save();
     }
     else {
 
       // make order only after admin accepts
+      if (menu == 'petpooja') {
 
-      // const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody)
+        const petPoojaOrder = await this.petPoojaService.saveOrder({ ...petPoojaOrderBody1, id: order._id })
 
-      // console.log(petPoojaOrder.restID)
+        // console.log(petPoojaOrder.restID)
+        if (!order.petPooja) {
+          order['petPooja'] = {
+            restId: '',
+            orderId: '',
+            clientOrderId: ''
+          };
+        }
+        order.petPooja.restId = petPoojaOrder?.restID;
+        order.petPooja.orderId = petPoojaOrder?.orderID;
+        order.petPooja.clientOrderId = petPoojaOrder?.clientOrderID;
 
 
-      // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
+        // const newOrderBody = { ...orderBody, petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID } }
 
 
 
-      order = new this.orderModel(orderBody);
-      await order.save();
+        // order = new this.orderModel(orderBody);
+        await order.save();
+      }
 
     }
 
@@ -706,6 +736,23 @@ export class OrderService {
     return await this.orderModel.find()
   }
   async updateOrderStateCancelled(orderId) {
+    // const restaurantDetails = await this.restaurantDetailsModel.findOne()
+    // const menu = restaurantDetails.menu;
+
+
+    /// pet pooja https://pponlineordercb.petpooja.com/update_order_status
+    //restaurant code : kqpn461c
+
+    //   {
+    //     "app_key":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    //     "app_secret":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //     "access_token":"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+    //     "restID": "xxxxxx",
+    //     "orderID": "26", // pass it blank, will be deprecated soon.
+    //     "clientorderID": "A-1",
+    //     "cancelReason": "Please cancel my order.",
+    //     "status":"-1"
+    // }
     //cancel only when state is pending
     const order = await this.orderModel.findById(orderId);
     if (order.state != 'pending') {
@@ -740,50 +787,54 @@ export class OrderService {
 
 
     let menu = restaurantDetails.menu;
-    let discrepancy = await this.discrepancyModel.findOne({
-      createdAt: { $gte: today },
-      menu: menu
-    }).exec();
 
-    if (!discrepancy) {
-      const startOfYesterday = new Date();
-      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-      startOfYesterday.setHours(0, 0, 0, 0);
-
-      const endOfYesterday = new Date();
-      endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-      endOfYesterday.setHours(23, 59, 59, 999);
-
-      discrepancy = await this.discrepancyModel.findOne({
-        createdAt: {
-          $gte: startOfYesterday,
-          $lte: endOfYesterday
-        },
-        menu: menu
-      }).sort({ createdAt: -1 }).exec();
+    if (menu == 'petpooja') {
+      await this.petPoojaService.updateOrderStatusCancel(orderId)
     }
+    // let discrepancy = await this.discrepancyModel.findOne({
+    //   createdAt: { $gte: today },
+    //   menu: menu
+    // }).exec();
+
+    // if (!discrepancy) {
+    //   const startOfYesterday = new Date();
+    //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    //   startOfYesterday.setHours(0, 0, 0, 0);
+
+    //   const endOfYesterday = new Date();
+    //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+    //   endOfYesterday.setHours(23, 59, 59, 999);
+
+    //   discrepancy = await this.discrepancyModel.findOne({
+    //     createdAt: {
+    //       $gte: startOfYesterday,
+    //       $lte: endOfYesterday
+    //     },
+    //     menu: menu
+    //   }).sort({ createdAt: -1 }).exec();
+    // }
 
 
-    if (!discrepancy) {
-      throw new Error('No stock information available');
-    }
+    // if (!discrepancy) {
+    //   throw new Error('No stock information available');
+    // }
 
     // Iterate over the products in the order and update the used field
     for (let i = 0; i < order.products.length; i++) {
       const product = order.products[i];
-      const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+      // const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
 
-      if (stockItem) {
-        stockItem.used -= product.quantity;
-        if (stockItem.used < 0) {
-          stockItem.used = 0; // Ensure used doesn't go below 0
-        }
-      }
+      // if (stockItem) {
+      //   stockItem.used -= product.quantity;
+      //   if (stockItem.used < 0) {
+      //     stockItem.used = 0; // Ensure used doesn't go below 0
+      //   }
+      // }
     }
 
     // Mark the stockItems array as modified and save the discrepancy document
-    discrepancy.markModified('stockItems');
-    await discrepancy.save();
+    // discrepancy.markModified('stockItems');
+    // await discrepancy.save();
 
 
 
@@ -851,49 +902,54 @@ export class OrderService {
 
 
       // Find the most recent discrepancy document (or today's document if it exists)
-      let discrepancy = await this.discrepancyModel.findOne({
-        createdAt: { $gte: today },
-        menu: menu
-      }).exec();
+      //new changes-d
+      // let discrepancy = await this.discrepancyModel.findOne({
+      //   createdAt: { $gte: today },
+      //   menu: menu
+      // }).exec();
 
-      if (!discrepancy) {
-        const startOfYesterday = new Date();
-        startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-        startOfYesterday.setHours(0, 0, 0, 0);
+      // if (!discrepancy) {
+      //   const startOfYesterday = new Date();
+      //   startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+      //   startOfYesterday.setHours(0, 0, 0, 0);
 
-        const endOfYesterday = new Date();
-        endOfYesterday.setDate(endOfYesterday.getDate() - 1);
-        endOfYesterday.setHours(23, 59, 59, 999);
+      //   const endOfYesterday = new Date();
+      //   endOfYesterday.setDate(endOfYesterday.getDate() - 1);
+      //   endOfYesterday.setHours(23, 59, 59, 999);
 
-        discrepancy = await this.discrepancyModel.findOne({
-          createdAt: {
-            $gte: startOfYesterday,
-            $lte: endOfYesterday
-          },
-          menu: menu
-        }).sort({ createdAt: -1 }).exec();
-      }
+      //   discrepancy = await this.discrepancyModel.findOne({
+      //     createdAt: {
+      //       $gte: startOfYesterday,
+      //       $lte: endOfYesterday
+      //     },
+      //     menu: menu
+      //   }).sort({ createdAt: -1 }).exec();
+      // }
 
-      if (!discrepancy) {
-        throw new Error('No stock information available');
-      }
+      // if (!discrepancy) {
+      //   throw new Error('No stock information available');
+      // }
 
       // Iterate over the products in the order and update the used field
-      for (let i = 0; i < order.products.length; i++) {
-        const product = order.products[i];
-        const stockItem = discrepancy.stockItems.find(item => item.itemId === product.itemId);
+      // for (let i = 0; i < order.products.length; i++) {
+      //   const product = order.products[i];
+      //   const stockItem = discrepancy.stockItems.find(item => item.itemId === product["itemid"]);
 
-        if (stockItem) {
-          stockItem.used -= product.quantity;
-          if (stockItem.used < 0) {
-            stockItem.used = 0; // Ensure used doesn't go below 0
-          }
-        }
+      //   if (stockItem) {
+      //     stockItem.used -= product["quantity"];
+      //     if (stockItem.used < 0) {
+      //       stockItem.used = 0; // Ensure used doesn't go below 0
+      //     }
+      //   }
+      // }
+
+      // // Mark the stockItems array as modified and save the discrepancy document
+      // discrepancy.markModified('stockItems');
+      // await discrepancy.save();
+
+      if (menu == 'petpooja') {
+        await this.petPoojaService.updateOrderStatusCancel(order._id)
       }
-
-      // Mark the stockItems array as modified and save the discrepancy document
-      discrepancy.markModified('stockItems');
-      await discrepancy.save();
 
       await this.notificationService.orderRejected(order.user)
 
@@ -912,69 +968,69 @@ export class OrderService {
 
 
 
-      if (menu == 'petpooja') {
+      // if (menu == 'petpooja') {
 
-        const productsArray = order.products;
-        productsArray.map(async (product) => {
+      //   const productsArray = order.products;
+      //   productsArray.map(async (product) => {
 
-          const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
-          product["name"] = item.itemname;
+      //     const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+      //     product["name"] = item.itemname;
 
-        })
-
-
-        const petPoojaOrderBody = {
-          id: order._id,
-          user: await this.userModel.findOne({ _id: order.user }),
-          products: productsArray,
-          cgst: order.cgst,
-          sgst: order.sgst,
-          discount: {
-            couponId: order.discount.couponId,
-            discount: order.discount.discount
-          },
-          itemsTotal: order.itemsTotal,
-          grandTotal: order.grandTotal,
-          deliveryFee: order.deliveryFee,
-          platformFee: order.platformFee,
-          orderPreference: order.orderPreference,
-          address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
+      //   })
 
 
-          payment: {
-            paymentMethod: order.payment.paymentMethod,
-            paymentId: order.payment.paymentId,
-            status: order.payment.status
-          },
-          preOrder: {
-            type: order.preOrder.type,
-            orderDate: order.preOrder.orderDate,
-            orderTime: order.preOrder.orderTime
-          },
-          createdAt: order.createdAt,
-          updatedAt: new Date()
-        };
-
-        const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
-
-        if (petPoojaOrder?.status == 0) {
-
-        }
-        else {
-          await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
-          await this.notificationService.orderAccepted(order.user)
-          await this.orderModel.findByIdAndUpdate(orderId, {
-            petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
-            updatedAt: Date.now()
-          }, { new: true }).exec();
-        }
+      //   const petPoojaOrderBody = {
+      //     id: order._id,
+      //     user: await this.userModel.findOne({ _id: order.user }),
+      //     products: productsArray,
+      //     cgst: order.cgst,
+      //     sgst: order.sgst,
+      //     discount: {
+      //       couponId: order.discount.couponId,
+      //       discount: order.discount.discount
+      //     },
+      //     itemsTotal: order.itemsTotal,
+      //     grandTotal: order.grandTotal,
+      //     deliveryFee: order.deliveryFee,
+      //     platformFee: order.platformFee,
+      //     orderPreference: order.orderPreference,
+      //     address: order.address ? await this.addressModel.findOne({ _id: order.address }) : undefined,
 
 
-        // await this.orderModel.findByIdAndUpdate(orderId, {
-        //   petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
-        //   updatedAt: Date.now()
-        // }, { new: true }).exec();
-      }
+      //     payment: {
+      //       paymentMethod: order.payment.paymentMethod,
+      //       paymentId: order.payment.paymentId,
+      //       status: order.payment.status
+      //     },
+      //     preOrder: {
+      //       type: order.preOrder.type,
+      //       orderDate: order.preOrder.orderDate,
+      //       orderTime: order.preOrder.orderTime
+      //     },
+      //     createdAt: order.createdAt,
+      //     updatedAt: new Date()
+      //   };
+
+      //   const petPoojaOrder = await this.petPoojaService.saveOrder(petPoojaOrderBody);
+
+      //   if (petPoojaOrder?.status == 0) {
+
+      //   }
+      //   else {
+      await this.orderModel.findByIdAndUpdate(orderId, { state: "processing", updatedAt: Date.now() }, { new: true }).exec();
+      //   await this.notificationService.orderAccepted(order.user)
+      //   await this.orderModel.findByIdAndUpdate(orderId, {
+      //     petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+      //     updatedAt: Date.now()
+      //   }, { new: true }).exec();
+      // }
+
+
+      // await this.orderModel.findByIdAndUpdate(orderId, {
+      //   petPooja: { restId: petPoojaOrder.restID, orderId: petPoojaOrder.orderID, clientOrderId: petPoojaOrder.clientOrderID },
+      //   updatedAt: Date.now()
+      // }, { new: true }).exec();
+      // }
     }
 
     const order = await this.orderModel.findOne({ _id: orderId });
@@ -1031,7 +1087,8 @@ export class OrderService {
     // Query the database with the mapped states
     const orders = await this.orderModel.find({ user: userId, state: { $in: queryStates } }).exec();
     // return response;
-    const dicrepancystockitems = await this.petPoojaService.getStock();
+    //new changes-d
+    // const dicrepancystockitems = await this.petPoojaService.getStock();
     for (const order of orders) {
       if (order?.address) {
         const address = await this.addressModel.findById(order.address);
@@ -1058,36 +1115,38 @@ export class OrderService {
 
       for (const product of order.products) {
         // console.log(product)
-
-        const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+        //new changes-d
+        const item = await this.connection.db.collection('items').findOne({ itemid: product.itemid });
         // console.log(item)
         // console.log("912")
         //
-        const stockItem = dicrepancystockitems.find(stock => stock.itemId === item.itemid);
-        const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0;
+        //new changes-d
+        // const stockItem = dicrepancystockitems.find(stock => stock.itemId === item.itemid);
+        // const itemstockquantity = stockItem ? stockItem.quantity - stockItem.used : 0;
         // console.log(itemstockquantity)
 
 
         if (item) {
           product.details = item;
-          product.details["itemstockquantity"] = itemstockquantity;
+          // product.details["itemstockquantity"] = itemstockquantity;
 
         }
 
 
         const body = {
           orderId: order._id,
-          itemId: product.itemId
+          itemId: product["itemid"]
         }
 
         const rating = await this.feedbackService.getOrderItemRating(body)
         // console.log("getorderrating api")
         // console.log(rating)
         if (rating) {
-          product.details.rating = rating;
+          product["details"].rating = rating;
         }
         else {
-          product.details.rating = 0
+          // console.log(product)
+          product["details"]["rating"] = 0
         }
         // console.log(product)
 
@@ -1107,19 +1166,19 @@ export class OrderService {
     // console.log(order)
     for (const product of order.products) {
 
-      const item = await this.connection.db.collection('items').findOne({ itemid: product.itemId });
+      const item = await this.connection.db.collection('items').findOne({ itemid: product["itemid"] });
 
 
       if (item) {
-        product.details = item
+        product["details"] = item
 
       }
-      const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product.itemId })
+      const rating = await this.feedbackService.getOrderItemRating({ orderId: order._id, itemId: product["itemid"] })
       // console.log(rating)
       if (rating) {
-        product.details.rating = rating;
+        product["details"].rating = rating;
       } else {
-        product.details.rating = 0
+        product["details"].rating = 0
       }
 
 
@@ -1151,9 +1210,9 @@ export class OrderService {
 
     for (let i = 0; i < order.products.length; i++) {
       const body = {
-        product: { itemId: order.products[i].itemId },
+        product: { itemId: order.products[i]["itemid"] },
         userId: order.user,
-        quantity: order.products[i].quantity
+        quantity: order.products[i]["quantity"]
       }
 
       await this.cartService.addCart(body)

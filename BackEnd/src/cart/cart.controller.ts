@@ -18,6 +18,7 @@ export class CartController {
   @Post('add')
   @UseGuards(AuthGuard('user-jwt'))
   async addCart(@Body() body: AddCartDto) {
+
     // console.log("request", body)
 
 
@@ -35,7 +36,7 @@ export class CartController {
     // console.log(body)
 
     const cart = await this.cartService.getUserCart(userId, body);
-    // console.log("response", cart)
+    // console.log("response", JSON.stringify(cart))
     return cart;
   }
   @Get('cartNumber/:userId')

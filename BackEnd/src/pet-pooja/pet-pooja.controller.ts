@@ -55,6 +55,12 @@ export class PetPoojaController {
   }
 
 
+  @Get('testingImages')
+  async testingImages(@Body() body) {
+    return await this.petPoojaService.testingImages(body.link);
+  }
+
+
   @Get('paginatedMenu/:page')
   async paginatedMenu(@Param('page') page) {
     // console.log(page)
@@ -91,6 +97,7 @@ export class PetPoojaController {
   async pushmenu(@Body() body) {
     // @Req() req: RawBodyRequest<Request>
     // const body = req.rawBody;
+    console.log(body);
 
     return this.petPoojaService.pushmenu(body)
   }

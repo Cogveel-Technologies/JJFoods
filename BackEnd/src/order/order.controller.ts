@@ -55,7 +55,7 @@ export class OrderController {
   @Post('/createOrder')
   // @UseGuards(AuthGuard('user-jwt'))
   async createOrder(@Body() body: OrderDto) {
-    // console.log("order body:---------------------------", body)
+    console.log("order body:---------------------------", body)
     return this.orderService.createOrder(body);
   }
 
@@ -89,7 +89,7 @@ export class OrderController {
   // @UseGuards(AuthGuard('user-jwt'))
   async getOrdersByCustomerId(@Body() body: { userId: string, state: string }) {
     //completed or processing
-    // console.log(body)
+    console.log(body)
     const res = await this.orderService.getOrdersByCustomerId(body.userId, body.state);
     // console.log(res.length)
     return res

@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { AllExceptionsFilter } from './filter/exceptionfilter';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -15,6 +16,7 @@ async function bootstrap() {
       rawBody: true
     });
     app.useBodyParser('json', { limit: '10mb' });
+    // app.useGlobalFilters(new AllExceptionsFilter());
 
     // Apply global validation pipe for request validation
     app.useGlobalPipes(new ValidationPipe({

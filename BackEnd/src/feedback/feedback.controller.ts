@@ -14,7 +14,7 @@ export class FeedbackController {
   @Post('/orderItemRating')
   @UseGuards(AuthGuard('user-jwt'))
   async createOrderItemRating(@Body() body: ItemRatingDto) {
-    // console.log("feedback create", body)
+    console.log("feedback create", body)
 
     return this.feedbackService.createOrderItemRating(body)
   }
