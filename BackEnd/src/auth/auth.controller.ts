@@ -173,7 +173,7 @@ export class AuthController {
 
   @Post('/signup')
   signUp(@Body() signupDto: SignupDto) {
-    // console.log(signupDto) 
+    console.log(signupDto)
     const res = this.authService.signUp(signupDto);
     // console.log(res)
     return res;
