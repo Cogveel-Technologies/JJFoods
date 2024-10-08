@@ -63,7 +63,7 @@ export class WishlistService {
 
   async addToCart(body) {
     const { userId } = body;
-    const { itemId } = body.product;
+    const { itemId, variationId } = body.product;
     await this.cartService.addCart({ ...body, quantity: 1 })
 
     return await this.removeItemFromList({ userId, itemId })

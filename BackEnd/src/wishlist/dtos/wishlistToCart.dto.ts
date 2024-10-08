@@ -1,9 +1,21 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 class Product {
   @IsNotEmpty()
   @IsString()
   itemId: string;
+
+  @IsOptional()
+  @IsString()
+  variationId: string;
+
+  @IsOptional()
+  @IsString()
+  vId: string;
+
+  @IsOptional()
+  @IsString()
+  vName: string;
 }
 
 export class WishlistToCartDto {
