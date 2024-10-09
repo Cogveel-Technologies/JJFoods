@@ -1661,7 +1661,7 @@ export class PetPoojaService {
           },
           OrderItem: {
             details: order.products.map((product) => ({
-              id: product?.selectedVariation ? getSafeValue(product.selectedVariation.id) : getSafeValue(product.itemid),
+              id: product?.price == "0" ? getSafeValue(product.selectedVariation.id) : getSafeValue(product.itemid),
               name: product.name,
               gst_liability: 'restaurant',
               // item_tax: [
@@ -1681,7 +1681,7 @@ export class PetPoojaService {
                 {
                   id: '11213',
                   name: 'CGST',
-                  amount: product?.selectedVariation
+                  amount: product?.price == "0"
                     ? getSafeValue(
                       (
                         ((parseFloat(product?.selectedVariation.price) * product.quantity) -
@@ -1706,7 +1706,7 @@ export class PetPoojaService {
                 {
                   id: '20375',
                   name: 'SGST',
-                  amount: product?.selectedVariation
+                  amount: product?.price == "0"
                     ? getSafeValue(
                       (
                         ((parseFloat(product?.selectedVariation.price) * product.quantity) -
@@ -1731,9 +1731,9 @@ export class PetPoojaService {
               ],
 
               item_discount: '0',
-              price: product?.selectedVariation ? product?.selectedVariation.price : getSafeValue(product.price),
+              price: product?.price == "0" ? product?.selectedVariation.price : getSafeValue(product.price),
               // final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
-              final_price: product?.selectedVariation ? product?.selectedVariation.price : getSafeValue(product.price),
+              final_price: product?.price == "0" ? product?.selectedVariation.price : getSafeValue(product.price),
               quantity: getSafeValue(product.quantity),
               // description: '',
               variation_name: product?.selectedVariation ? product?.selectedVariation.name : '',
