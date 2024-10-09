@@ -1135,8 +1135,8 @@ export class PetPoojaService {
   }
 
   async updateOrderStatusCancel(clientorderId) {
-    // const url = 'https://pponlineordercb.petpooja.com/update_order_status';
-    const url = 'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1/update_order_status'
+    const url = 'https://pponlineordercb.petpooja.com/update_order_status';
+    // const url = 'https://qle1yy2ydc.execute-api.ap-southeast-1.amazonaws.com/V1/update_order_status'
     const data = {
       "restID": this.configService.get<string>('PETPOOJA_ID'),
       "app_key": this.configService.get<string>('PETPOOJA_KEY'),
@@ -1198,9 +1198,9 @@ export class PetPoojaService {
 
 
   async saveOrder(body) {
-    const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
+    // const url = 'https://47pfzh5sf2.execute-api.ap-southeast-1.amazonaws.com/V1/save_order';
 
-    // const url = 'https://pponlineordercb.petpooja.com/save_order';
+    const url = 'https://pponlineordercb.petpooja.com/save_order';
     // console.log("called")
 
     const data = this.mapOrderToApiPayload(body);
