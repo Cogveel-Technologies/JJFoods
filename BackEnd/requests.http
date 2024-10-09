@@ -1,0 +1,20 @@
+### sign up user otp
+POST http://localhost:3000/auth/signupOtp
+Content-Type: application/json
+
+{
+  "emailId":"nissarulhaq82@gmail.com"
+  
+}
+
+### sign up details
+POST http://localhost:3000/auth/signup 
+Content-Type: application/json
+
+{
+  "name":"husban",
+  "emailId":"nissarulhaq82@gmail.com",
+  "phoneNumber":8082780721,
+  "otp": 74043
+
+}

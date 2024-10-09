@@ -1,0 +1,32 @@
+import { Module, forwardRef } from '@nestjs/common';
+import { OrderService } from './order.service';
+import { OrderController } from './order.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { OrderSchema } from './schemas/order.schema';
+import { CartModule } from 'src/cart/cart.module';
+import { Cart, CartSchema } from 'src/cart/schemas/cart.schema';
+import { CouponSchema } from 'src/coupon/schemas/coupon.schema';
+import { CouponModule } from 'src/coupon/coupon.module';
+import { AddressSchema } from 'src/auth/schemas/address.schema';
+import { PetPoojaModule } from 'src/pet-pooja/pet-pooja.module';
+import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
+import { RazorpayModule } from 'src/razorpay/razorpay.module';
+import { FeedbackModule } from 'src/feedback/feedback.module';
+import { Used, UsedSchema } from 'src/coupon/schemas/used.schema';
+import { Discrepancy, DiscrepancySchema } from 'src/pet-pooja/schemas/stock.schema';
+import { FeesSchema } from './schemas/fees.schema';
+import { RestaurantDetails, RestaurantDetailsSchema } from 'src/auth/schemas/restaurant.schema';
+import { MenuCT, MenuCTSchema } from 'src/menu/schema/menu.schema';
+import { CategoryCT, CategoryCTSchema } from 'src/menu/schema/categoryct.schema';
+import { NotificationModule } from 'src/notification/notification.module';
+
+
+
+
+@Module({
+  imports: [MongooseModule.forFeature([{ name: 'Order', schema: OrderSchema }, { name: "Cart", schema: CartSchema }, { name: 'Coupon', schema: CouponSchema }, { name: 'User', schema: OrderSchema }, { name: "Address", schema: AddressSchema }, { name: Used.name, schema: UsedSchema }, { name: Discrepancy.name, schema: DiscrepancySchema }, { name: 'Fees', schema: FeesSchema }, { name: RestaurantDetails.name, schema: RestaurantDetailsSchema }, { name: MenuCT.name, schema: MenuCTSchema }, { name: CategoryCT.name, schema: CategoryCTSchema }]), forwardRef(() => CartModule), CouponModule, forwardRef(() => PetPoojaModule), forwardRef(() => RazorpayModule), forwardRef(() => FeedbackModule), forwardRef(() => CouponModule), NotificationModule],
+  providers: [OrderService],
+  controllers: [OrderController],
+  exports: [OrderService]
+})
+export class OrderModule { }
