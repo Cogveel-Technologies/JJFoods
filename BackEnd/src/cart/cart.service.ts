@@ -233,16 +233,16 @@ export class CartService {
     const cgstTax = feeDocument.cgst;
     const sgstTax = feeDocument.sgst;
 
-    let cgst = cgstTax * itemsTotal / 100;
-    let sgst = sgstTax * itemsTotal / 100;
+    let cgst = cgstTax * (itemsTotal - discount) / 100;
+    let sgst = sgstTax * (itemsTotal - discount) / 100;
 
 
 
     let menu = restaurantDetails.menu;
     if (menu == 'petpooja') {
       const taxes = await this.connection.db.collection('taxes').find().toArray();
-      cgst = taxes[0].tax * itemsTotal / 100;
-      sgst = taxes[1].tax * itemsTotal / 100;
+      cgst = taxes[0].tax * (itemsTotal - discount) / 100;
+      sgst = taxes[1].tax * (itemsTotal - discount) / 100;
 
 
     }

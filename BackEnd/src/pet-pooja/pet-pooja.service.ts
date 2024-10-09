@@ -1205,7 +1205,7 @@ export class PetPoojaService {
 
     const data = this.mapOrderToApiPayload(body);
 
-    // console.log("--------", JSON.stringify(data))
+    console.log("--------", JSON.stringify(data))
     const headers = new Headers();
     headers.append('Content-Type', 'application/json');
     const response = await fetch(url, {
@@ -1643,7 +1643,7 @@ export class PetPoojaService {
               ondc_bap: 'JJFOODS',
               advanced_order: order.preOrder.type ? 'Y' : 'N',
               payment_type: order.payment?.paymentMethod === 'online' ? 'ONLINE' : 'COD',
-              table_no: '',
+              table_no: '1',
               no_of_persons: '',
               discount_total: getSafeValue(order.discount?.discount, '0'),
               tax_total: getSafeValue(order.cgst + order.sgst, '0'),
@@ -1661,22 +1661,75 @@ export class PetPoojaService {
           },
           OrderItem: {
             details: order.products.map((product) => ({
-              id: product?.selectedVariation ? getSafeValue(product.selectedVariation.id) : getSafeValue(product.itemId),
+              id: product?.selectedVariation ? getSafeValue(product.selectedVariation.id) : getSafeValue(product.itemid),
               name: product.name,
               gst_liability: 'restaurant',
+              // item_tax: [
+              //   {
+              //     id: '11213',
+              //     name: 'CGST',
+              //     amount: product?.selectedVariation ? getSafeValue(((parseFloat(product?.selectedVariation.price)* product.quantity ) * 0.025 ).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+              //   },
+              //   {
+              //     id: '20375',
+              //     name: 'SGST',
+              //     // amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+              //     amount: product?.selectedVariation ? getSafeValue((parseFloat(product?.selectedVariation.price) * 0.025 * product.quantity).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+              //   },
+              // ],
               item_tax: [
                 {
                   id: '11213',
                   name: 'CGST',
-                  amount: product?.selectedVariation ? getSafeValue((parseFloat(product?.selectedVariation) * 0.025 * product.quantity).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                  amount: product?.selectedVariation
+                    ? getSafeValue(
+                      (
+                        ((parseFloat(product?.selectedVariation.price) * product.quantity) -
+                          // Distribute discount based on the product's price proportion
+                          (getSafeValue(order?.discount?.discount, "0") *
+                            (parseFloat(product?.selectedVariation.price) * product.quantity) /
+                            order.itemsTotal)) *
+                        0.025
+                      ).toFixed(2)
+                    )
+                    : getSafeValue(
+                      (
+                        ((parseFloat(product.price) * product.quantity) -
+                          // Distribute discount based on the product's price proportion
+                          (getSafeValue(order?.discount?.discount, "0") *
+                            (parseFloat(product.price) * product.quantity) /
+                            order.itemsTotal)) *
+                        0.025
+                      ).toFixed(2)
+                    ),
                 },
                 {
                   id: '20375',
                   name: 'SGST',
-                  // amount: getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
-                  amount: product?.selectedVariation ? getSafeValue((parseFloat(product?.selectedVariation) * 0.025 * product.quantity).toFixed(2)) : getSafeValue((parseFloat(product.price) * 0.025 * product.quantity).toFixed(2)),
+                  amount: product?.selectedVariation
+                    ? getSafeValue(
+                      (
+                        ((parseFloat(product?.selectedVariation.price) * product.quantity) -
+                          // Distribute discount based on the product's price proportion
+                          (getSafeValue(order.discount.discount, "0") *
+                            (parseFloat(product?.selectedVariation.price) * product.quantity) /
+                            order.itemsTotal)) *
+                        0.025
+                      ).toFixed(2)
+                    )
+                    : getSafeValue(
+                      (
+                        ((parseFloat(product.price) * product.quantity) -
+                          // Distribute discount based on the product's price proportion
+                          (getSafeValue(order.discount.discount, "0") *
+                            (parseFloat(product.price) * product.quantity) /
+                            order.itemsTotal)) *
+                        0.025
+                      ).toFixed(2)
+                    ),
                 },
               ],
+
               item_discount: '0',
               price: product?.selectedVariation ? product?.selectedVariation.price : getSafeValue(product.price),
               // final_price: getSafeValue((parseFloat(product.price) * product.quantity).toString()),
