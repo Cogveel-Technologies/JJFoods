@@ -22,10 +22,18 @@ import { NotificationService } from 'src/notification/notification.service';
 import { AdminLoginDto } from './dtos/adminLogin.dto';
 import { SignupOtpDto } from './dtos/signupOtp.dto';
 import { PetPoojaService } from 'src/pet-pooja/pet-pooja.service';
+import * as dotenv from 'dotenv';
+import { Cron } from '@nestjs/schedule';
 
 const admin = require("../utils/firebase/firebaseInit")
 const axios = require('axios');
 const sharp = require('sharp');
+const getCronInterval = () => {
+
+  dotenv.config();
+  return process.env.CRON_TIME_DELETE
+};
+
 @Injectable()
 export class AuthService {
   constructor(@InjectModel(User.name) private userModel: Model<User>,
@@ -75,6 +83,8 @@ export class AuthService {
       // Handle the error (e.g., log it, send a notification, etc.)
     }
   }
+
+
 
   async check(body: any) {
     try {
@@ -1151,6 +1161,47 @@ export class AuthService {
     }
   }
 
+  @Cron(getCronInterval())
+  async handleCron() {
+
+    const users = await this.userModel.find({
+      isActive: false,
+      phoneNumber: { $ne: null } // Use $ne to check for not equal to null
+    });
+    console.log("123", users);
+    const currentDate = new Date();
+
+
+    for (let i = 0; i < users.length; i++) {
+
+      const daysDifference = Math.floor((currentDate.getTime() - users[i]?.isDeletedDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysDifference >= 30) {
+        // Clear fields except _id
+        users[i].name = '';
+        users[i].emailId = '';
+        users[i].phoneNumber = null;
+        users[i].imageUrl = '';
+        users[i].isActive = false;
+
+        users[i].isAdmin = false;
+        users[i].deviceToken = '';
+
+        // Save the changes to the database, if this is inside a service
+        users[i].save()
+
+      }
+
+
+    }
+
+
+
+
+
+
+
+  }
+
   async deleteProfile(body: any) {
     try {
       const user = await this.userModel.findById(body.userId);
@@ -1163,6 +1214,7 @@ export class AuthService {
       // Update the user's isActive status and reason
       user.isActive = false;
       user.reason = body.reason;
+      user.isDeletedDate = new Date();
 
       // Save the updated user
       await user.save();
