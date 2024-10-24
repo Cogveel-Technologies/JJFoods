@@ -48,6 +48,9 @@ export class User {
 
   @Prop()
   deviceToken: string;
+
+  @Prop({ type: Date, default: null })
+  isDeletedDate: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
