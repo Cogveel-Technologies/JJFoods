@@ -1166,7 +1166,7 @@ export class AuthService {
 
     const users = await this.userModel.find({
       isActive: false,
-      phoneNumber: { $ne: null } // Use $ne to check for not equal to null
+      name: { $ne: 'd0E0l0E0t0E0d' } // Use $ne to check for not equal to null
     });
     console.log("123", users);
     const currentDate = new Date();
@@ -1177,9 +1177,9 @@ export class AuthService {
       const daysDifference = Math.floor((currentDate.getTime() - users[i]?.isDeletedDate.getTime()) / (1000 * 60 * 60 * 24));
       if (daysDifference >= 30) {
         // Clear fields except _id
-        users[i].name = '';
+        users[i].name = 'd0E0l0E0t0E0d';
         users[i].emailId = (users[i]._id).toString();
-        users[i].phoneNumber = null;
+        users[i].phoneNumber -= 123456789;
         users[i].imageUrl = '';
         users[i].isActive = false;
 
