@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Tester</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    input,
+    button,
+    textarea {
+      display: block;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    textarea {
+      height: 300px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>API Tester</h1>
+  <label for="apiUrl">Base API URL:</label>
+  <input type="text" id="apiUrl" placeholder="Enter the base API URL (e.g., http://localhost:3000/petPooja)">
+
+  <label for="param">Parameter:</label>
+  <input type="text" id="param" placeholder="Enter the parameter value (e.g., 10521827)">
+
+  <label for="body">Request Body (JSON):</label>
+  <textarea id="body" placeholder='Enter the JSON body (e.g., {"key": "value"})'></textarea>
+
+  <button onclick="testApi()">Test API</button>
+
+  <h2>Response</h2>
+  <textarea id="apiResponse" readonly></textarea>
+
+  <script>
+    async function testApi() {
+      const apiUrl = document.getElementById('apiUrl').value;
+      const param = document.getElementById('param').value;
+      const bodyText = document.getElementById('body').value;
+      const responseText = document.getElementById('apiResponse');
+
+      try {
+        const response = await fetch(`${apiUrl}/${encodeURIComponent(param)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: bodyText
+        });
+        const data = await response.json();
+        responseText.value = JSON.stringify(data, null, 2);
+      } catch (error) {
+        responseText.value = 'Error: ' + error.message;
+      }
+    }
+  </script>
+
+</body>
+
+</html>
