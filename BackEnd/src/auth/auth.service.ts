@@ -1178,7 +1178,7 @@ export class AuthService {
       if (daysDifference >= 30) {
         // Clear fields except _id
         users[i].name = '';
-        users[i].emailId = '';
+        users[i].emailId = (users[i]._id).toString();
         users[i].phoneNumber = null;
         users[i].imageUrl = '';
         users[i].isActive = false;
